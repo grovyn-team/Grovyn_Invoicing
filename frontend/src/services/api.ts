@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Invoice, InvoiceFormData, Client, Payment, Company, DashboardStats } from '../types';
 
-const API_URL = 'http://localhost:8081/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
 // Configure axios defaults
 axios.defaults.headers.common['Content-Type'] = 'application/json';
