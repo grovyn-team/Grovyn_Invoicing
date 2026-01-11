@@ -65,6 +65,9 @@ export const createInvoice = async (req: AuthRequest, res: Response): Promise<vo
     if (invoiceData.dueDate) {
       invoiceData.dueDate = new Date(invoiceData.dueDate);
     }
+    if (invoiceData.serviceOptedDate) {
+      invoiceData.serviceOptedDate = new Date(invoiceData.serviceOptedDate);
+    }
 
     // Calculate taxAmount and total (similar to pre-save hook logic)
     const subtotalAfterDiscount = subtotal - invoiceData.discountTotal;
@@ -213,10 +216,19 @@ export const updateInvoice = async (req: Request, res: Response): Promise<void> 
     if (req.body.dueDate) {
       invoice.dueDate = new Date(req.body.dueDate);
     }
+    // Handle serviceOptedDate - allow setting, updating, or clearing (null/undefined)
+    if (req.body.serviceOptedDate !== undefined) {
+      if (req.body.serviceOptedDate && req.body.serviceOptedDate !== '') {
+        invoice.serviceOptedDate = new Date(req.body.serviceOptedDate);
+      } else {
+        // Clear the field if empty string or null
+        invoice.serviceOptedDate = undefined;
+      }
+    }
 
     // Update invoice fields
     Object.keys(req.body).forEach((key) => {
-      if (key !== 'invoiceDate' && key !== 'dueDate' && key !== '_id' && key !== 'createdAt' && key !== 'updatedAt') {
+      if (key !== 'invoiceDate' && key !== 'dueDate' && key !== 'serviceOptedDate' && key !== '_id' && key !== 'createdAt' && key !== 'updatedAt') {
         (invoice as any)[key] = req.body[key];
       }
     });

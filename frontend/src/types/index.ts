@@ -143,3 +143,24 @@ export interface DashboardStats {
   activeClients: number;
   totalInvoices: number;
 }
+
+export interface MonthlyRevenue {
+  month: string;
+  revenue: number;
+}
+
+export interface AnalyticsData {
+  monthlyRevenue: MonthlyRevenue[];
+  globalCoverage: {
+    regions: number;
+    countries: string[];
+  };
+  growthIndex: {
+    percentage: number;
+    period: string;
+  };
+  systemLoad: {
+    status: string;
+    invoicesProcessed: number;
+  };
+}

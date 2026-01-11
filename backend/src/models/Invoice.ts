@@ -30,6 +30,7 @@ export interface IInvoice extends Document {
   invoiceType: InvoiceType;
   invoiceDate: Date;
   dueDate: Date;
+  serviceOptedDate?: Date;
   clientId: mongoose.Types.ObjectId;
   clientName: string;
   clientEmail: string;
@@ -104,6 +105,7 @@ const InvoiceSchema = new Schema<IInvoice>(
     },
     invoiceDate: { type: Date, required: true },
     dueDate: { type: Date, required: true },
+    serviceOptedDate: { type: Date },
     clientId: { type: Schema.Types.ObjectId, ref: 'Client' },
     clientName: { type: String, required: true },
     clientEmail: { type: String, required: true },

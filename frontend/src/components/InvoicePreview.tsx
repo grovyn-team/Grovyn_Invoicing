@@ -1,13 +1,16 @@
 import React from 'react';
 import { Invoice } from '../types/refTypes';
 import { COMPANY_DEFAULTS } from '../constants';
+import { numberToWords } from '../utils/numberToWords';
+import { formatDateDDMonYYYY } from '../utils/dateFormat';
 
 interface InvoicePreviewProps {
   invoice: Invoice;
 }
 
 const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
-  const subtotal = invoice.items.reduce((acc, item) => acc + (item.quantity * item.rate * (1 - item.discount / 100)), 0);
+  // Use item.total instead of recalculating
+  const subtotal = invoice.items.reduce((acc, item) => acc + item.total, 0);
   const discountAmount = invoice.discountPercentage ? (subtotal * invoice.discountPercentage / 100) : 0;
   const subtotalAfterDiscount = subtotal - discountAmount;
   
@@ -36,10 +39,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
 
   const totalTax = taxLines.reduce((acc, t) => acc + t.value, 0);
   const total = subtotalAfterDiscount + totalTax;
-
-  const amountToWords = (num: number) => {
-    return `Rupees ${num.toLocaleString('en-IN')} Only`.toUpperCase();
-  };
 
   return (
     <div className="w-full overflow-x-auto bg-white rounded-xl lg:bg-transparent lg:rounded-none">
@@ -82,7 +81,9 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
             <h2 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Project</h2>
             <div className="space-y-1">
               <p className="text-slate-900 font-bold uppercase tracking-tight text-sm md:text-base">{invoice.client.projectTitle}</p>
-              <p className="text-xs text-slate-500">Service Opted: 3 Jan 2026</p>
+              {invoice.serviceOptedDate && (
+                <p className="text-xs text-slate-500">Service Opted: {formatDateDDMonYYYY(invoice.serviceOptedDate)}</p>
+              )}
               <div className="mt-6 pt-4 border-t border-slate-100 flex justify-between gap-4">
                 <div>
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Payment Due</p>
@@ -124,7 +125,7 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
           <div className="flex-1 w-full">
             <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Amount In Words</h3>
-              <p className="text-sm font-black text-slate-800 leading-tight">{amountToWords(total)}</p>
+              <p className="text-sm font-black text-slate-800 leading-tight uppercase">{numberToWords(total, invoice.currency || 'INR')}</p>
             </div>
           </div>
           <div className="w-full md:w-72 space-y-3">

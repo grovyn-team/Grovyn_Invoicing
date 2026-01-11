@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Invoice, InvoiceFormData, Client, Payment, Company, DashboardStats } from '../types';
+import { Invoice, InvoiceFormData, Client, Payment, Company, DashboardStats, AnalyticsData } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
@@ -110,6 +110,11 @@ export const invoiceAPI = {
 
   getDashboardStats: async (): Promise<DashboardStats> => {
     const response = await axios.get<DashboardStats>(`${API_URL}/invoices/dashboard/stats`);
+    return response.data;
+  },
+
+  getAnalytics: async (): Promise<AnalyticsData> => {
+    const response = await axios.get<AnalyticsData>(`${API_URL}/invoices/analytics`);
     return response.data;
   },
 };

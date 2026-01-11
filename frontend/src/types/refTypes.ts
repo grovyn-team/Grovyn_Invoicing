@@ -77,6 +77,7 @@ export interface Invoice {
   invoiceNumber: string;
   issueDate: string;
   dueDate: string;
+  serviceOptedDate?: string; // Service opted date
   client: Client;
   items: LineItem[];
   status: InvoiceStatus;

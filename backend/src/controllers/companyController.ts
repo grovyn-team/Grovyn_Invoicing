@@ -1,7 +1,8 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../utils/auth.js';
 import Company from '../models/Company.js';
 
-export const getCompany = async (req: Request, res: Response): Promise<void> => {
+export const getCompany = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     let company = await Company.findOne();
     if (!company) {
@@ -24,7 +25,7 @@ export const getCompany = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-export const updateCompany = async (req: Request, res: Response): Promise<void> => {
+export const updateCompany = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     let company = await Company.findOne();
     if (!company) {

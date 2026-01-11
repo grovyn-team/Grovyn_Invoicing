@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, Eye, EyeOff, Download, ChevronLeft, Share2 } from 'lucide-react';
 import { Invoice, LineItem, InvoiceStatus, InvoiceType, Client } from '../types/refTypes';
 import InvoicePreview from './InvoicePreview';
+import { toast } from '../utils/toast';
 
 interface InvoiceEditorProps {
   initialInvoice?: Invoice;
@@ -18,6 +19,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
     invoiceNumber: `GRV/${new Date().getFullYear()}/INV/${Math.floor(100 + Math.random() * 899)}`,
     issueDate: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    serviceOptedDate: new Date().toISOString().split('T')[0],
     status: InvoiceStatus.DRAFT,
     client: clients[0] || { id: '', name: '', companyName: '', email: '', address: '', country: '', projectTitle: '', currency: '', paymentTerms: 30, status: 'Active', joinedDate: '', totalSpent: 0 },
     items: [{ id: '1', description: '', hsnSac: '', quantity: 1, rate: 0, discount: 0, taxRate: 18, total: 0 }],
@@ -80,7 +82,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
         // Fallback: Copy to clipboard
         const textToCopy = `Invoice ${invoice.invoiceNumber}\nClient: ${invoice.client.companyName || invoice.client.name}\nTotal: ${invoice.currency} ${invoice.items.reduce((acc, i) => acc + i.total, 0).toLocaleString()}\n${window.location.href}`;
         await navigator.clipboard.writeText(textToCopy);
-        alert('Invoice details copied to clipboard!');
+        toast.success('Invoice details copied to clipboard!');
       }
     } catch (error: any) {
       // User cancelled share or error occurred
@@ -89,10 +91,10 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
         try {
           const textToCopy = `Invoice ${invoice.invoiceNumber}\nClient: ${invoice.client.companyName || invoice.client.name}\nTotal: ${invoice.currency} ${invoice.items.reduce((acc, i) => acc + i.total, 0).toLocaleString()}\n${window.location.href}`;
           await navigator.clipboard.writeText(textToCopy);
-          alert('Invoice details copied to clipboard!');
+          toast.success('Invoice details copied to clipboard!');
         } catch (clipboardError) {
           console.error('Failed to copy to clipboard:', clipboardError);
-          alert('Unable to share invoice. Please copy the URL manually.');
+          toast.error('Unable to share invoice. Please copy the URL manually.');
         }
       }
     }
@@ -360,6 +362,15 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                       onChange={e => setInvoice({ ...invoice, dueDate: e.target.value })}
                     />
                  </div>
+              </div>
+              <div>
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Service Opted</label>
+                <input 
+                  type="date"
+                  className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold"
+                  value={invoice.serviceOptedDate || ''}
+                  onChange={e => setInvoice({ ...invoice, serviceOptedDate: e.target.value })}
+                />
               </div>
             </div>
           </section>

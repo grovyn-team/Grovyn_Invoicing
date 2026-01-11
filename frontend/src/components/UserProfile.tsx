@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, User, Mail, Lock, Camera, Save, Eye, EyeOff } from 'lucide-react';
 import { userAPI } from '../services/api';
+import { toast } from '../utils/toast';
 
 interface UserProfileProps {
   user: {
@@ -48,9 +49,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onClose, onUpdate }) =>
       const updatedUser = await userAPI.updateProfile(profileData);
       onUpdate(updatedUser);
       setSuccess('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update profile');
+      const errorMessage = err.response?.data?.error || 'Failed to update profile';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -80,6 +84,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onClose, onUpdate }) =>
         newPassword: passwordData.newPassword,
       });
       setSuccess('Password changed successfully!');
+      toast.success('Password changed successfully!');
       setPasswordData({
         currentPassword: '',
         newPassword: '',
@@ -116,9 +121,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onClose, onUpdate }) =>
       const updatedUser = await userAPI.uploadAvatar(formData);
       onUpdate(updatedUser);
       setSuccess('Avatar updated successfully!');
+      toast.success('Avatar updated successfully!');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to upload avatar');
+      const errorMessage = err.response?.data?.error || 'Failed to upload avatar';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

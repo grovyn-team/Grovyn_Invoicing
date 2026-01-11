@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, Save, Mail, User, Building2, MapPin, Phone, Globe, FileText } from 'lucide-react';
 import { Client } from '../types/refTypes';
 import { clientAPI } from '../services/api';
+import { toast } from '../utils/toast';
 
 const getCurrencyIcon = (currency: string) => {
   switch (currency) {
@@ -93,9 +94,12 @@ const ClientOnboarding: React.FC<ClientOnboardingProps> = ({ onSave, onCancel })
 
       onSave(frontendClient);
       setLoading(false);
+      toast.success('Client created successfully!');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to create client. Please try again.');
+      const errorMessage = err.response?.data?.error || 'Failed to create client. Please try again.';
+      setError(errorMessage);
       setLoading(false);
+      toast.error(errorMessage);
     }
   };
 

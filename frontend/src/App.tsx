@@ -8,11 +8,14 @@ import ClientDetails from './components/ClientDetails';
 import ClientOnboarding from './components/ClientOnboarding';
 import Notifications from './components/Notifications';
 import Auth from './components/Auth';
+import SystemConfiguration from './components/SystemConfiguration';
+import { ToastContainer } from './components/Toast';
 import { Invoice, UserRole } from './types/refTypes';
 import { useUserStore } from './stores/userStore';
 import { useClientsStore } from './stores/clientsStore';
 import { useInvoicesStore } from './stores/invoicesStore';
 import { useAppStore } from './stores/appStore';
+import { useToastStore } from './stores/toastStore';
 
 const App: React.FC = () => {
   const { user, loading, checkAuth, login, logout, updateUser } = useUserStore();
@@ -61,6 +64,8 @@ const App: React.FC = () => {
     updateUser(updatedUser);
   };
 
+  const { toasts, removeToast } = useToastStore();
+
   const saveInvoice = async (invoice: Invoice) => {
     try {
       await saveInvoiceAction(invoice, clients);
@@ -69,10 +74,12 @@ const App: React.FC = () => {
       useAppStore.getState().setIsCreating(false);
       // Refresh invoices list
       await fetchInvoices(clients);
+      // Show success toast
+      useToastStore.getState().success('Invoice saved successfully!');
     } catch (error: any) {
       console.error('Failed to save invoice:', error);
-      // You can add error handling UI here (e.g., toast notification)
-      alert(error.message || 'Failed to save invoice. Please try again.');
+      // Show error toast
+      useToastStore.getState().error(error.message || 'Failed to save invoice. Please try again.');
     }
   };
 
@@ -174,75 +181,30 @@ const App: React.FC = () => {
           </div>
         ) : null;
       case 'settings':
-        return (
-          <div className="space-y-8 animate-in fade-in duration-500">
-            <h2 className="text-3xl font-black text-slate-900 tracking-tight">System Configuration</h2>
-            <div className="grid lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 bg-white p-8 rounded-2xl border border-slate-200">
-                <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Company Legal Metadata</h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="col-span-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block">Registered Entity Name</label>
-                    <input
-                      disabled={!isAdmin}
-                      type="text"
-                      defaultValue="GROVYN ENGINEERING PRIVATE LIMITED"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold disabled:opacity-70"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block">GSTIN Protocol</label>
-                    <input
-                      disabled={!isAdmin}
-                      type="text"
-                      defaultValue="27AABCG1234F1Z1"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold mono disabled:opacity-70"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black text-slate-500 uppercase mb-2 block">PAN Node</label>
-                    <input
-                      disabled={!isAdmin}
-                      type="text"
-                      defaultValue="AABCG1234F"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-bold mono disabled:opacity-70"
-                    />
-                  </div>
-                </div>
-              </div>
-              <div className="bg-teal-500 p-8 rounded-2xl text-white shadow-xl shadow-teal-500/20">
-                <h3 className="font-black text-lg mb-4">Architecture Mode</h3>
-                <p className="text-sm font-bold opacity-80 leading-relaxed mb-8 italic">
-                  "Systems must be secure, compliant, and dependable over time. Quality is not an afterthought."
-                </p>
-                <div className="p-4 bg-white/10 rounded-xl border border-white/20">
-                  <p className="text-[10px] font-black uppercase tracking-widest mb-1">Current SLA</p>
-                  <p className="text-xl font-black">99.9% Uptime</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
+        return <SystemConfiguration isAdmin={isAdmin} />;
       default:
         return null;
     }
   };
 
   return (
-    <Layout
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-      userRole={user.role}
-      onSearch={setSearchTerm}
-      onLogout={handleLogout}
-      userAvatar={user.avatar}
-      userName={user.name}
-      userId={user.id || ''}
-      userEmail={user.email || ''}
-      onUserUpdate={handleUserUpdate}
-    >
-      {renderContent()}
-    </Layout>
+    <>
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+      <Layout
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        userRole={user.role}
+        onSearch={setSearchTerm}
+        onLogout={handleLogout}
+        userAvatar={user.avatar}
+        userName={user.name}
+        userId={user.id || ''}
+        userEmail={user.email || ''}
+        onUserUpdate={handleUserUpdate}
+      >
+        {renderContent()}
+      </Layout>
+    </>
   );
 };
 

@@ -3,6 +3,7 @@ import { ChevronLeft, Mail, MapPin, Globe, Building2, CreditCard, TrendingUp, Fi
 import { Client, Invoice, InvoiceStatus, UserRole } from '../types/refTypes';
 import { useClientsStore } from '../stores/clientsStore';
 import { clientAPI } from '../services/api';
+import { toast } from '../utils/toast';
 
 interface ClientDetailsProps {
   client: Client;
@@ -123,9 +124,12 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
       updateClient(client.id, frontendClient);
       setIsEditing(false);
       setLoading(false);
+      toast.success('Client updated successfully!');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update client. Please try again.');
+      const errorMessage = err.response?.data?.error || 'Failed to update client. Please try again.';
+      setError(errorMessage);
       setLoading(false);
+      toast.error(errorMessage);
     }
   };
 

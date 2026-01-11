@@ -102,6 +102,9 @@ const transformBackendInvoice = (backendInvoice: any, clients: Client[]): Invoic
     dueDate: backendInvoice.dueDate 
       ? new Date(backendInvoice.dueDate).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0],
+    serviceOptedDate: backendInvoice.serviceOptedDate 
+      ? new Date(backendInvoice.serviceOptedDate).toISOString().split('T')[0]
+      : undefined,
     client: clientObj,
     items: (backendInvoice.items || []).map((item: any, index: number) => transformLineItem(item, index)),
     status: transformStatus(backendInvoice.status || 'draft'),
@@ -148,6 +151,7 @@ export const useInvoicesStore = create<InvoicesState>((set, get) => ({
         invoiceType: invoice.type,
         invoiceDate: invoice.issueDate,
         dueDate: invoice.dueDate,
+        serviceOptedDate: invoice.serviceOptedDate ? invoice.serviceOptedDate : undefined,
         clientId: invoice.client.id,
         clientName: invoice.client.companyName || invoice.client.name,
         clientEmail: invoice.client.email,
