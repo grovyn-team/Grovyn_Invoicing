@@ -1,4 +1,21 @@
 // Types matching the reference project structure
+export enum ProposalStatus {
+  DRAFT = 'Draft',
+  SENT = 'Sent',
+  ACCEPTED = 'Accepted',
+  REJECTED = 'Rejected',
+  EXPIRED = 'Expired'
+}
+
+export interface Proposal {
+  id: string;
+  proposalNumber: string;
+  proposalDate: string;
+  validUntil: string;
+  client: Client;
+  projectName: string;
+}
+  
 export enum InvoiceStatus {
   DRAFT = 'Draft',
   SENT = 'Sent',
@@ -6,6 +23,23 @@ export enum InvoiceStatus {
   PAID = 'Paid',
   OVERDUE = 'Overdue',
   CANCELLED = 'Cancelled'
+}
+
+export enum QuotationStatus {
+  DRAFT = 'Draft',
+  SENT = 'Sent',
+  ACCEPTED = 'Accepted',
+  REJECTED = 'Rejected',
+  EXPIRED = 'Expired',
+  CONVERTED = 'Converted'
+}
+
+export enum OfferLetterStatus {
+  DRAFT = 'Draft',
+  SENT = 'Sent',
+  ACCEPTED = 'Accepted',
+  REJECTED = 'Rejected',
+  EXPIRED = 'Expired'
 }
 
 export enum InvoiceType {
@@ -93,6 +127,66 @@ export interface Invoice {
   createdBy: string;
 }
 
+export interface Quotation {
+  id: string;
+  quotationNumber: string;
+  quotationDate: string;
+  validUntil: string;
+  client: Client;
+  projectName: string;
+  projectScope?: string;
+  features?: string;
+  deliverables?: string;
+  supportDetails?: string;
+  warrantyPeriod?: string;
+  timeline?: string;
+  items: LineItem[];
+  status: QuotationStatus;
+  notes?: string;
+  terms?: string;
+  paymentTerms?: string;
+  currency: string;
+  exchangeRate?: number;
+  taxType: 'GST' | 'EXPORT' | 'NONE';
+  discountPercentage?: number;
+  validityPeriod: number;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface OfferLetter {
+  id: string;
+  offerNumber: string;
+  offerDate: string;
+  validUntil: string;
+  candidateName: string;
+  candidateEmail: string;
+  candidatePhone?: string;
+  candidateAddress?: string;
+  position: string;
+  department: string;
+  designation: string;
+  reportingManager?: string;
+  startDate: string;
+  employmentType: 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship';
+  workLocation: string;
+  salaryDetails: {
+    baseSalary: number;
+    currency: string;
+    salaryBreakdown?: string;
+    variablePay?: number;
+    benefits?: string;
+  };
+  noticePeriod?: string;
+  probationPeriod?: string;
+  termsAndConditions?: string;
+  additionalNotes?: string;
+  acceptanceDeadline: string;
+  status: OfferLetterStatus;
+  createdAt: string;
+  createdBy: string;
+}
+
 export interface AppNotification {
   id: string;
   title: string;
@@ -102,7 +196,7 @@ export interface AppNotification {
   read: boolean;
 }
 
-export type AppTab = 'dashboard' | 'invoices' | 'analytics' | 'clients' | 'settings' | 'audit' | 'notifications' | 'client-details' | 'client-onboarding';
+export type AppTab = 'dashboard' | 'invoices' | 'quotations' | 'offer-letters' | 'analytics' | 'clients' | 'settings' | 'audit' | 'notifications' | 'client-details' | 'client-onboarding' | 'proposals';
 
 export interface User {
   id: string;

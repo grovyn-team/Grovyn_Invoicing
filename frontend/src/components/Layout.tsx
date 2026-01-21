@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, FileText, Settings, BarChart3, Users, ChevronRight, LogOut, Search, Bell, ShieldCheck, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FileText, Settings, BarChart3, Users, ChevronRight, LogOut, Search, Bell, ShieldCheck, Menu, X, FileCheck, FileSignature, Gem } from 'lucide-react';
 import { AppTab, UserRole } from '../types/refTypes';
 import UserProfile from './UserProfile';
 
@@ -30,6 +30,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, adminOnly: false },
     { id: 'invoices', label: 'Invoices', icon: <FileText size={18} />, adminOnly: false },
+    { id: 'quotations', label: 'Quotations', icon: <FileCheck size={18} />, adminOnly: false },
+    { id: 'proposals', label: 'Proposals', icon: <Gem size={18} />, adminOnly: false },
+    { id: 'offer-letters', label: 'Offer Letters', icon: <FileSignature size={18} />, adminOnly: false },
     { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={18} />, adminOnly: true },
     { id: 'clients', label: 'Clients', icon: <Users size={18} />, adminOnly: false },
     { id: 'audit', label: 'Audit Logs', icon: <ShieldCheck size={18} />, adminOnly: true },
@@ -39,11 +42,11 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
   const handleBreadcrumbClick = (target: string) => {
     if (target === 'core') setActiveTab('dashboard');
     else if (target === 'clients' && activeTab === 'client-details') setActiveTab('clients');
+    else if (target === 'quotations' && activeTab === 'quotations') setActiveTab('quotations');
   };
 
   return (
-    <div className="min-h-screen flex bg-[#f8fafc] text-slate-900 relative">
-      {/* Mobile Sidebar Overlay */}
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 relative">
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden transition-opacity"
@@ -51,11 +54,10 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
         />
       )}
 
-      {/* Sidebar */}
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-72 lg:w-64 border-r border-slate-200 bg-white flex flex-col no-print transition-transform duration-300 ease-in-out transform
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:block
+        lg:translate-x-0
       `}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-10">
@@ -111,8 +113,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 no-print sticky top-0 z-30">
+      <div className="flex flex-col min-w-0 fixed inset-y-0 left-0 lg:left-64 right-0 overflow-hidden">
+        <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 no-print z-30 flex-shrink-0">
           <div className="flex items-center gap-4">
             <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2.5 text-slate-500 hover:text-teal-600 bg-slate-50 rounded-xl border border-slate-100">
               <Menu size={20} />
@@ -129,7 +131,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
                 onClick={() => handleBreadcrumbClick('clients')}
                 className={`truncate uppercase tracking-widest text-[10px] md:text-xs transition-colors ${activeTab === 'client-details' ? 'hover:text-teal-600 cursor-pointer' : 'text-slate-900 pointer-events-none'}`}
               >
-                {activeTab === 'client-details' ? 'Clients' : activeTab.replace('-', ' ')}
+                {activeTab === 'client-details' ? 'Clients' : activeTab === 'quotations' ? 'Quotations' : activeTab.replace('-', ' ')}
               </button>
               {activeTab === 'client-details' && (
                 <>

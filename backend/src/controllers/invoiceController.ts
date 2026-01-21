@@ -252,7 +252,7 @@ export const updateInvoice = async (req: Request, res: Response): Promise<void> 
     // Recalculate discountTotal from discountPercentage if provided
     if (req.body.discountPercentage !== undefined && req.body.discountPercentage !== null) {
       invoice.discountPercentage = req.body.discountPercentage;
-      invoice.discountTotal = invoice.subtotal * invoice.discountPercentage / 100;
+      invoice.discountTotal = invoice.subtotal * (invoice?.discountPercentage || 0) / 100;
     }
 
     // Recalculate taxAmount and total (similar to pre-save hook logic)

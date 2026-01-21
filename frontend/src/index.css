@@ -2,11 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================
+   Base styles
+========================= */
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
+    'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans',
+    'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #f8fafc;
@@ -20,50 +23,148 @@ body {
 .grovyn-card {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1),
+              0 1px 2px rgb(0 0 0 / 0.1);
 }
 
-/* Print styles - hide UI elements and show only invoice content */
+/* =========================
+   Print styles
+========================= */
 @media print {
-  /* Hide all elements with no-print class */
-  .no-print {
-    display: none !important;
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 2cm 0.4cm 1.5cm 0.4cm;
   }
-  
-  /* Hide Layout sidebar and header */
+
+  html,
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Hide UI elements */
+  .no-print,
   aside,
   header {
     display: none !important;
   }
-  
-  /* Remove background colors */
-  body,
-  html {
-    background: white !important;
+
+  /* Root containers – allow page flow */
+  #root,
+  main {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Remove max-width constraints */
+  .max-w-7xl,
+  [class*="max-w"] {
+    max-width: none !important;
+    width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
   }
-  
-  /* Remove page margins */
-  @page {
-    margin: 0.5cm;
-    size: A4;
+
+  /* Images */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
   }
-  
-  /* Ensure invoice content is visible and properly styled */
-  .print\\:shadow-none {
+
+  .signature-img {
+    max-width: 120px !important;
+    max-height: 40px !important;
+  }
+
+  /* Print color accuracy */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* =========================
+     FLEX-SAFE HEADER FIX
+     (This fixes your logo + text issue)
+  ========================= */
+  .header-wrap {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    white-space: nowrap !important;
+  }
+
+  td {
+    vertical-align: middle !important;
+  }
+
+  /* =========================
+     Tailwind print utilities
+  ========================= */
+  .print\:shadow-none {
     box-shadow: none !important;
   }
-  
-  .print\\:border-none {
+
+  .print\:border-none {
     border: none !important;
   }
-  
-  .print\\:m-0 {
+
+  .print\:m-0 {
     margin: 0 !important;
   }
-  
-  .print\\:p-8 {
+
+  .print\:p-8 {
     padding: 2rem !important;
+  }
+
+  .print\:w-full {
+    width: 100% !important;
+  }
+
+  .print\:max-w-none {
+    max-width: none !important;
+  }
+
+  .print\:bg-white {
+    background: white !important;
+  }
+
+  .print\:overflow-visible {
+    overflow: visible !important;
+  }
+
+  /* =========================
+     Page break helpers
+  ========================= */
+  .print\:break-inside-avoid,
+  .page-break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print\:break-before-page,
+  .page-break-before-page {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .print\:break-after-page,
+  .page-break-after-page {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  /* Avoid widows/orphans */
+  p,
+  li {
+    orphans: 3;
+    widows: 3;
   }
 }

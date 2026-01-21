@@ -1,7 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import InvoiceEditor from './components/InvoiceEditor';
+import QuotationEditor from './components/QuotationEditor';
+import Quotations from './components/Quotations';
+import OfferLetterEditor from './components/OfferLetterEditor';
+import OfferLetters from './components/OfferLetters';
 import Analytics from './components/Analytics';
 import Clients from './components/Clients';
 import ClientDetails from './components/ClientDetails';
@@ -10,47 +14,101 @@ import Notifications from './components/Notifications';
 import Auth from './components/Auth';
 import SystemConfiguration from './components/SystemConfiguration';
 import { ToastContainer } from './components/Toast';
-import { Invoice, UserRole } from './types/refTypes';
+import { Invoice, Quotation, OfferLetter, UserRole, Proposal } from './types/refTypes';
 import { useUserStore } from './stores/userStore';
 import { useClientsStore } from './stores/clientsStore';
 import { useInvoicesStore } from './stores/invoicesStore';
+import { useQuotationsStore } from './stores/quotationsStore';
+import { useOfferLettersStore } from './stores/offerLettersStore';
 import { useAppStore } from './stores/appStore';
 import { useToastStore } from './stores/toastStore';
-
+import Proposals from './components/Proposals'; 
+import { useProposalsStore } from './stores/proposalStore';
 const App: React.FC = () => {
   const { user, loading, checkAuth, login, logout, updateUser } = useUserStore();
   const { clients, fetchClients, addClient } = useClientsStore();
-  const { invoices, fetchInvoices } = useInvoicesStore();
+  const invoices = useInvoicesStore((state) => state.invoices);
+  const fetchInvoices = useInvoicesStore((state) => state.fetchInvoices);
+  const quotations = useQuotationsStore((state) => state.quotations);
+  const fetchQuotations = useQuotationsStore((state) => state.fetchQuotations);
+  const offerLetters = useOfferLettersStore((state) => state.offerLetters);
+  const fetchOfferLetters = useOfferLettersStore((state) => state.fetchOfferLetters);
   const saveInvoiceAction = useInvoicesStore((state) => state.saveInvoice);
+  const saveQuotationAction = useQuotationsStore((state) => state.saveQuotation);
+  const saveOfferLetterAction = useOfferLettersStore((state) => state.saveOfferLetter);
+  const proposals = useProposalsStore((state: any) => state.proposals);
+  const fetchProposals = useProposalsStore((state: any) => state.fetchProposals);
+  const saveProposalAction = useProposalsStore((state: any) => state.saveProposal);
+  const deleteProposalAction = useProposalsStore((state: any) => state.deleteProposal);
+  const proposalsLoading = useProposalsStore((state: any) => state.loading);
   const {
     activeTab,
     searchTerm,
     selectedClientId,
     editingInvoice,
+    editingQuotation,
+    editingOfferLetter,
+    isCreating,
     setActiveTab,
     setSearchTerm,
     startNewInvoice,
     startEditInvoice,
+    startNewQuotation,
+    startEditQuotation,
+    startNewOfferLetter,
+    startEditOfferLetter,
     viewClient,
     startNewClient,
     completeClientCreation,
   } = useAppStore();
 
+  const [hasFetchedData, setHasFetchedData] = useState(false);
   useEffect(() => {
     checkAuth();
-  }, [checkAuth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
+  const clientsLoading = useClientsStore((state) => state.loading);
+  
+  // Fetch clients when user is available
   useEffect(() => {
-    if (user) {
+    if (user && clients.length === 0 && !clientsLoading) {
       fetchClients();
     }
-  }, [user, fetchClients]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, clients.length, clientsLoading]); // Depend on user, clients.length, and loading state
 
+  // Reset fetch flag when user changes
   useEffect(() => {
-    if (user && clients.length > 0) {
-      fetchInvoices(clients);
+    if (!user) {
+      setHasFetchedData(false);
     }
-  }, [user, clients, fetchInvoices]);
+  }, [user]);
+
+  // Fetch invoices and quotations once clients are loaded
+  useEffect(() => {
+    if (user && clients.length > 0 && !hasFetchedData) {
+      const invoicesLoading = useInvoicesStore.getState().loading;
+      const quotationsLoading = useQuotationsStore.getState().loading;
+      
+      // Only fetch if not already loading and data is empty
+      if (!invoicesLoading && invoices.length === 0) {
+        fetchInvoices(clients);
+      }
+      
+      if (!quotationsLoading && quotations.length === 0) {
+        fetchQuotations(clients);
+      }
+      
+      const offerLettersLoading = useOfferLettersStore.getState().loading;
+      if (!offerLettersLoading && offerLetters.length === 0) {
+        fetchOfferLetters();
+      }
+      
+      setHasFetchedData(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, clients.length, hasFetchedData, offerLetters.length]); // Only re-fetch if clients.length changes from 0 to >0
 
   const handleLogin = (userData: Parameters<typeof login>[0]) => {
     login(userData);
@@ -100,10 +158,64 @@ const App: React.FC = () => {
     startEditInvoice(invoice.id);
   };
 
-  // Get the editing invoice object
+  const handleEditQuotation = (quotation: Quotation) => {
+    startEditQuotation(quotation.id);
+  };
+
+  const handleEditOfferLetter = (offerLetter: OfferLetter) => {
+    startEditOfferLetter(offerLetter.id);
+  };
+
+  const saveQuotation = async (quotation: Quotation) => {
+    try {
+      await saveQuotationAction(quotation, clients);
+      useAppStore.getState().setActiveTab('quotations');
+      useAppStore.getState().setEditingQuotation(null);
+      useAppStore.getState().setIsCreating(false);
+      await fetchQuotations(clients);
+      useToastStore.getState().success('Quotation saved successfully!');
+    } catch (error: any) {
+      console.error('Failed to save quotation:', error);
+      useToastStore.getState().error(error.message || 'Failed to save quotation. Please try again.');
+    }
+  };
+
   const editingInvoiceObj = editingInvoice
     ? invoices.find((inv) => inv.id === editingInvoice)
     : null;
+
+  const editingQuotationObj = editingQuotation
+    ? quotations.find((quo) => quo.id === editingQuotation)
+    : null;
+
+  const editingOfferLetterObj = editingOfferLetter
+    ? offerLetters.find((ol: OfferLetter) => ol.id === editingOfferLetter)
+    : null;
+
+  const saveOfferLetter = async (offerLetter: OfferLetter) => {
+    try {
+      await saveOfferLetterAction(offerLetter);
+      useAppStore.getState().setActiveTab('offer-letters');
+      useAppStore.getState().setEditingOfferLetter(null);
+      useAppStore.getState().setIsCreating(false);
+      await fetchOfferLetters();
+      useToastStore.getState().success('Offer letter saved successfully!');
+    } catch (error: any) {
+      console.error('Failed to save offer letter:', error);
+      useToastStore.getState().error(error.message || 'Failed to save offer letter. Please try again.');
+    }
+  };
+
+  // Proposal handlers
+  const startNewProposal = () => {
+    useAppStore.getState().setIsCreating(true);
+    useAppStore.getState().setActiveTab('proposals');
+  };
+
+  const handleEditProposal = (proposal: Proposal) => {
+    useAppStore.getState().startEditProposal(proposal.id);
+    useAppStore.getState().setActiveTab('proposals');
+  };
 
   // Get the selected client object
   const selectedClient = selectedClientId
@@ -141,10 +253,55 @@ const App: React.FC = () => {
             clients={clients}
           />
         );
+      case 'quotations':
+        if (isCreating || editingQuotationObj || editingQuotation) {
+          return (
+            <QuotationEditor
+              initialQuotation={editingQuotationObj || undefined}
+              onSave={saveQuotation}
+              onCancel={() => {
+                useAppStore.getState().setIsCreating(false);
+                useAppStore.getState().setEditingQuotation(null);
+                setActiveTab('quotations');
+              }}
+              clients={clients}
+            />
+          );
+        }
+        return (
+          <Quotations
+            quotations={quotations}
+            onCreateNew={startNewQuotation}
+            onEditQuotation={handleEditQuotation}
+          />
+        );
+      case 'offer-letters':
+        if (isCreating || editingOfferLetterObj || editingOfferLetter) {
+          return (
+            <OfferLetterEditor
+              initialOfferLetter={editingOfferLetterObj || undefined}
+              onSave={saveOfferLetter}
+              onCancel={() => {
+                useAppStore.getState().setIsCreating(false);
+                useAppStore.getState().setEditingOfferLetter(null);
+                setActiveTab('offer-letters');
+              }}
+            />
+          );
+        }
+        return (
+          <OfferLetters
+            offerLetters={offerLetters}
+            onCreateNew={startNewOfferLetter}
+            onEditOfferLetter={handleEditOfferLetter}
+          />
+        );
+      case 'proposals':
+        return <Proposals proposals={proposals} onCreateNew={startNewProposal} onEditProposal={handleEditProposal} />;
       case 'analytics':
         return isAdmin ? <Analytics /> : <Dashboard invoices={filteredInvoices} onCreateNew={startNewInvoice} onEditInvoice={handleEditInvoice} />;
       case 'clients':
-        return <Clients searchTerm={searchTerm} onViewDetails={handleViewClient} onCreateNew={handleStartNewClient} clients={clients} />;
+        return <Clients onSearch={setSearchTerm} searchTerm={searchTerm} onViewDetails={handleViewClient} onCreateNew={handleStartNewClient} clients={clients} />;
       case 'client-details':
         if (!selectedClient) {
           setActiveTab('clients');

@@ -20,6 +20,7 @@ A comprehensive, production-ready invoice management system for Grovyn Engineeri
 - ✅ Sidebar navigation
 - ✅ Mobile responsive design
 - ✅ Dashboard with revenue metrics
+- ✅ **AI-Powered Invoice Generation** - Generate invoice drafts from natural language prompts using HuggingFace AI
 
 ### Backend Architecture
 - ✅ RESTful API with Express.js
@@ -61,12 +62,23 @@ Create `backend/.env`:
 ```env
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/invoice_generator
+JWT_SECRET=your-secret-key-here
+FRONTEND_URL=http://localhost:3000
+
+# AI Configuration (Optional - for AI invoice generation)
+HF_API_KEY=your-huggingface-api-key-here
+HF_MODEL=mistralai/Mistral-7B-Instruct-v0.2
 ```
 
 For MongoDB Atlas:
 ```env
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/invoice_generator
 ```
+
+**AI Configuration (Optional):**
+- Get your HuggingFace API key from https://huggingface.co/settings/tokens
+- The AI feature will be disabled if `HF_API_KEY` is not set
+- Default model: `mistralai/Mistral-7B-Instruct-v0.2` (can be changed to other models)
 
 3. **Run the application:**
 ```bash
@@ -138,6 +150,7 @@ Invoice_Generator/
 - `PUT /api/invoices/:id` - Update invoice
 - `DELETE /api/invoices/:id` - Delete invoice
 - `POST /api/invoices/:id/send` - Send invoice
+- `POST /api/invoices/ai/generate` - Generate invoice draft using AI (requires `prompt` and `clientId` in body)
 
 ### Clients
 - `GET /api/clients` - Get all clients
@@ -215,6 +228,38 @@ This is a production-ready system built for scale. The architecture supports:
 - GST compliance for Indian clients
 - International invoice support
 
+## 🤖 AI-Powered Invoice Generation
+
+The system includes an AI assistant that can generate invoice drafts from natural language prompts.
+
+### Features
+- **Natural Language Processing**: Describe your invoice in plain English
+- **Context-Aware**: Uses client and company information for accurate generation
+- **Smart Validation**: AI responses are validated against invoice schema
+- **Confidence Scoring**: Shows confidence level for generated drafts
+- **Auto-Fill**: Automatically fills invoice form with AI suggestions
+- **Visual Indicators**: AI-filled fields are highlighted for easy review
+- **Audit Logging**: All AI-generated drafts are logged for compliance
+
+### Usage
+1. Click "AI Generate" button when creating a new invoice
+2. Enter a natural language prompt describing your invoice
+3. Review the auto-filled form (AI-suggested fields are highlighted)
+4. Adjust any fields as needed
+5. Save the invoice
+
+### Example Prompts
+- "Create a tax invoice for website development services. Amount: ₹50,000. Service date: today. Use 18% GST."
+- "Proforma invoice for consulting services. 3 items: Strategy (₹30k), Design (₹25k), Implementation (₹45k). Due in 30 days."
+- "Tax invoice for export services. Zero-rated GST. Amount: ₹1,00,000."
+
+### Technical Details
+- **Model**: Mistral-7B-Instruct (configurable via `HF_MODEL`)
+- **Provider**: HuggingFace Inference API
+- **Validation**: Zod schema validation for type safety
+- **Error Handling**: Graceful fallbacks and user-friendly error messages
+- **Security**: API keys stored in environment variables, never exposed to frontend
+
 ## 🚧 Future Enhancements (Architecture Ready)
 
 - User authentication & RBAC
@@ -225,6 +270,7 @@ This is a production-ready system built for scale. The architecture supports:
 - Automated reminders
 - Recurring invoices automation
 - Multi-company support
+- Enhanced AI features (HSN/SAC auto-suggestion, revenue anomaly detection, natural language analytics)
 
 ## 📄 License
 

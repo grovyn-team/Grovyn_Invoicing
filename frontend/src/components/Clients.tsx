@@ -1,21 +1,27 @@
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Users, Search, Mail, ShieldCheck, UserPlus, ChevronRight } from 'lucide-react';
 import { Client } from '../types/refTypes';
+import useDebounce from '../hooks/useDebounce';
 
 interface ClientsProps {
   searchTerm?: string;
   onViewDetails: (clientId: string) => void;
   onCreateNew: () => void;
   clients: Client[];
+  onSearch: (term: string) => void;
 }
 
-const Clients: React.FC<ClientsProps> = ({ searchTerm = '', onViewDetails, onCreateNew, clients }) => {
-  const filteredClients = clients.filter(c => 
-    c.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.projectTitle.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+const Clients: React.FC<ClientsProps> = ({ searchTerm = '', onViewDetails, onCreateNew, clients, onSearch }) => {
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const filteredClients = useMemo(() => {
+    return clients.filter(c => 
+      c.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      c.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+      c.projectTitle.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+    );
+  }, [clients, debouncedSearchTerm]);
+  console.log(filteredClients);
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-500">
       <div className="flex justify-between items-end">
@@ -41,6 +47,7 @@ const Clients: React.FC<ClientsProps> = ({ searchTerm = '', onViewDetails, onCre
                   type="text" 
                   placeholder="Filter active scope..." 
                   value={searchTerm}
+                  onChange={(e) => onSearch(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl pl-12 pr-4 py-3 text-sm text-slate-700 outline-none focus:border-teal-500/50 transition-all shadow-sm"
                 />
              </div>
@@ -75,8 +82,8 @@ const Clients: React.FC<ClientsProps> = ({ searchTerm = '', onViewDetails, onCre
                     >
                        <td className="px-8 py-6">
                           <div className="flex items-center gap-4">
-                             <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center font-black text-teal-600 border border-slate-200 group-hover:bg-white group-hover:border-teal-200 transition-all uppercase">
-                                {client.companyName[0]}
+                             <div className="w-12 h-12 bg-slate-100 shrink-0 rounded-2xl flex items-center justify-center font-black text-teal-600 border border-slate-200 group-hover:bg-white group-hover:border-teal-200 transition-all uppercase">
+                                {client.companyName.trim()[0]}
                              </div>
                              <div>
                                 <p className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors uppercase tracking-tight">{client.companyName}</p>

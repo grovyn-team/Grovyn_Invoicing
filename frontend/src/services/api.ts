@@ -117,6 +117,11 @@ export const invoiceAPI = {
     const response = await axios.get<AnalyticsData>(`${API_URL}/invoices/analytics`);
     return response.data;
   },
+
+  generateAIDraft: async (prompt: string, clientId: string): Promise<any> => {
+    const response = await axios.post(`${API_URL}/invoices/ai/generate`, { prompt, clientId });
+    return response.data;
+  },
 };
 
 export const clientAPI = {
@@ -171,5 +176,72 @@ export const paymentAPI = {
 
   delete: async (id: string): Promise<void> => {
     await axios.delete(`${API_URL}/payments/${id}`);
+  },
+};
+
+export const quotationAPI = {
+  getAll: async (): Promise<any[]> => {
+    const response = await axios.get<any[]>(`${API_URL}/quotations`);
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<any> => {
+    const response = await axios.get<any>(`${API_URL}/quotations/${id}`);
+    return response.data;
+  },
+
+  create: async (data: any): Promise<any> => {
+    const response = await axios.post<any>(`${API_URL}/quotations`, data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<any>): Promise<any> => {
+    const response = await axios.put<any>(`${API_URL}/quotations/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await axios.delete(`${API_URL}/quotations/${id}`);
+  },
+
+  send: async (id: string): Promise<any> => {
+    const response = await axios.post<any>(`${API_URL}/quotations/${id}/send`);
+    return response.data;
+  },
+
+  generateAIDraft: async (prompt: string, clientId: string): Promise<any> => {
+    const response = await axios.post(`${API_URL}/quotations/ai/generate`, { prompt, clientId });
+    return response.data;
+  },
+};
+
+export const offerLetterAPI = {
+  getAll: async (): Promise<any[]> => {
+    const response = await axios.get<any[]>(`${API_URL}/offer-letters`);
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<any> => {
+    const response = await axios.get<any>(`${API_URL}/offer-letters/${id}`);
+    return response.data;
+  },
+
+  create: async (data: any): Promise<any> => {
+    const response = await axios.post<any>(`${API_URL}/offer-letters`, data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<any>): Promise<any> => {
+    const response = await axios.put<any>(`${API_URL}/offer-letters/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await axios.delete(`${API_URL}/offer-letters/${id}`);
+  },
+
+  send: async (id: string): Promise<any> => {
+    const response = await axios.post<any>(`${API_URL}/offer-letters/${id}/send`);
+    return response.data;
   },
 };

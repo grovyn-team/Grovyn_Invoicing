@@ -9,9 +9,32 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ invoices, onCreateNew, onEditInvoice }) => {
-  // Calculate invoice totals
+  // Calculate invoice total after discounts and taxes
   const getInvoiceTotal = (invoice: Invoice): number => {
-    return invoice.items.reduce((acc, item) => acc + item.total, 0);
+    // Calculate subtotal from items
+    const subtotal = invoice.items.reduce((acc, item) => acc + item.total, 0);
+    
+    // Apply invoice-level discount if exists
+    const discountPercentage = invoice.discountPercentage || 0;
+    const discountAmount = (subtotal * discountPercentage) / 100;
+    const subtotalAfterDiscount = subtotal - discountAmount;
+    
+    // Calculate tax based on tax type
+    let taxMultiplier = 1;
+    if (invoice.taxType === 'GST') {
+      // Calculate average tax rate from items, default to 18% if no items
+      const avgTaxRate = invoice.items.length > 0 
+        ? invoice.items.reduce((sum, item) => sum + (item.taxRate || 18), 0) / invoice.items.length
+        : 18;
+      taxMultiplier = 1 + (avgTaxRate / 100); // e.g., 1.18 for 18% GST
+    } else if (invoice.taxType === 'EXPORT' || invoice.taxType === 'NONE') {
+      taxMultiplier = 1; // No tax
+    }
+    
+    // Final total after discount and tax
+    const finalTotal = subtotalAfterDiscount * taxMultiplier;
+    
+    return finalTotal;
   };
 
   // Calculate metrics from real invoice data

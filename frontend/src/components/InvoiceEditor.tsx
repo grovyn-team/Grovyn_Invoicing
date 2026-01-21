@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, Eye, EyeOff, Download, ChevronLeft, Share2 } from 'lucide-react';
+import { Plus, Trash2, Save, Eye, EyeOff, Download, ChevronLeft, Share2, Sparkles } from 'lucide-react';
 import { Invoice, LineItem, InvoiceStatus, InvoiceType, Client } from '../types/refTypes';
 import InvoicePreview from './InvoicePreview';
+import AIGenerateModal from './AIGenerateModal';
 import { toast } from '../utils/toast';
 
 interface InvoiceEditorProps {
@@ -13,6 +14,8 @@ interface InvoiceEditorProps {
 
 const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, onCancel, clients }) => {
   const [showPreview, setShowPreview] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiFilledFields, setAiFilledFields] = useState<Set<string>>(new Set());
   const [invoice, setInvoice] = useState<Invoice>(initialInvoice || {
     id: Math.random().toString(36).substr(2, 9),
     type: InvoiceType.TAX,
@@ -37,8 +40,64 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
   useEffect(() => {
     if (initialInvoice) {
       setInvoice(initialInvoice);
+      setAiFilledFields(new Set()); // Reset AI fields when editing existing invoice
     }
   }, [initialInvoice]);
+
+  // Handle AI draft generation
+  const handleAIDraftGenerated = (draft: any) => {
+    const filledFields = new Set<string>();
+    
+    // Map AI draft to invoice structure
+    const updatedInvoice: Invoice = {
+      ...invoice,
+      type: draft.invoiceType as InvoiceType,
+      issueDate: draft.invoiceDate || invoice.issueDate,
+      dueDate: draft.dueDate || invoice.dueDate,
+      serviceOptedDate: draft.serviceOptedDate || draft.invoiceDate || invoice.serviceOptedDate,
+      projectName: draft.projectName || invoice.client.projectTitle || '',
+      items: draft.items?.map((item: any) => ({
+        id: Date.now().toString() + Math.random(),
+        description: item.description || item.name || '',
+        hsnSac: item.hsnSac || '',
+        quantity: item.quantity || 1,
+        rate: item.unitPrice || 0,
+        discount: 0,
+        taxRate: item.taxRate || 18,
+        total: (item.quantity || 1) * (item.unitPrice || 0),
+      })) || invoice.items,
+      taxType: draft.taxDetails?.taxProtocol || 'GST',
+      discountPercentage: draft.discountPercentage,
+      timeline: draft.timeline || invoice.timeline,
+      deliverables: draft.deliverables || invoice.deliverables,
+      paymentTerms: draft.paymentTerms || invoice.paymentTerms,
+      notes: draft.notes || invoice.notes,
+    };
+
+    // Track which fields were filled by AI
+    if (draft.invoiceType) filledFields.add('type');
+    if (draft.invoiceDate) filledFields.add('issueDate');
+    if (draft.dueDate) filledFields.add('dueDate');
+    if (draft.serviceOptedDate) filledFields.add('serviceOptedDate');
+    if (draft.projectName) filledFields.add('projectName');
+    if (draft.items?.length > 0) filledFields.add('items');
+    if (draft.taxDetails?.taxProtocol) filledFields.add('taxType');
+    if (draft.discountPercentage !== undefined) filledFields.add('discountPercentage');
+    if (draft.timeline) filledFields.add('timeline');
+    if (draft.deliverables) filledFields.add('deliverables');
+    if (draft.paymentTerms) filledFields.add('paymentTerms');
+    if (draft.notes) filledFields.add('notes');
+
+    setInvoice(updatedInvoice);
+    setAiFilledFields(filledFields);
+    
+    toast.success('Invoice form auto-filled with AI suggestions. Please review and adjust as needed.');
+  };
+
+  // Get current client for AI modal
+  const currentClient = invoice.client?.id 
+    ? clients.find(c => c.id === invoice.client.id) || clients[0]
+    : clients[0];
 
   const calculateItemTotal = (item: LineItem) => {
     return item.quantity * item.rate * (1 - item.discount / 100);
@@ -116,6 +175,15 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {!initialInvoice && currentClient && (
+            <button 
+              onClick={() => setShowAIModal(true)}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all bg-gradient-to-r from-teal-500 to-teal-600 text-white hover:from-teal-600 hover:to-teal-700 shadow-lg shadow-teal-500/20"
+            >
+              <Sparkles size={16} />
+              <span className="hidden xs:inline">AI Generate</span>
+            </button>
+          )}
           <button 
             onClick={() => setShowPreview(!showPreview)}
             className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all ${showPreview ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
@@ -165,11 +233,27 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
               </div>
               
               <div>
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Type</label>
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+                  Type
+                  {aiFilledFields.has('type') && (
+                    <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
+                  )}
+                </label>
                 <select 
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-bold"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-bold transition-all ${
+                    aiFilledFields.has('type') 
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                      : 'border-slate-200'
+                  }`}
                   value={invoice.type}
-                  onChange={e => setInvoice({ ...invoice, type: e.target.value as InvoiceType })}
+                  onChange={e => {
+                    setInvoice({ ...invoice, type: e.target.value as InvoiceType });
+                    setAiFilledFields(prev => {
+                      const next = new Set(prev);
+                      next.delete('type');
+                      return next;
+                    });
+                  }}
                 >
                   {Object.values(InvoiceType).map(v => <option key={v} value={v}>{v}</option>)}
                 </select>
@@ -201,12 +285,30 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                 <div key={item.id} className="p-4 bg-slate-50/50 rounded-xl border border-slate-100 space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
                     <div className="sm:col-span-8">
-                      <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Description</label>
+                      <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">
+                        Description
+                        {aiFilledFields.has('items') && (
+                          <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
+                        )}
+                      </label>
                       <input 
                         type="text"
-                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none text-sm font-medium"
+                        className={`w-full px-3 py-2 bg-white border rounded-lg outline-none text-sm font-medium transition-all ${
+                          aiFilledFields.has('items') 
+                            ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                            : 'border-slate-200'
+                        }`}
                         value={item.description}
-                        onChange={e => updateItem(item.id, 'description', e.target.value)}
+                        onChange={e => {
+                          updateItem(item.id, 'description', e.target.value);
+                          if (aiFilledFields.has('items')) {
+                            setAiFilledFields(prev => {
+                              const next = new Set(prev);
+                              next.delete('items');
+                              return next;
+                            });
+                          }
+                        }}
                         placeholder="Service description..."
                       />
                     </div>
@@ -271,33 +373,87 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
             
             <div className="space-y-4 md:space-y-6">
               <div>
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Timeline / Delivery Schedule</label>
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+                  Timeline / Delivery Schedule
+                  {aiFilledFields.has('timeline') && (
+                    <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
+                  )}
+                </label>
                 <input 
                   type="text"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-medium"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${
+                    aiFilledFields.has('timeline') 
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                      : 'border-slate-200'
+                  }`}
                   value={invoice.timeline || ''}
-                  onChange={e => setInvoice({ ...invoice, timeline: e.target.value })}
+                  onChange={e => {
+                    setInvoice({ ...invoice, timeline: e.target.value });
+                    if (aiFilledFields.has('timeline')) {
+                      setAiFilledFields(prev => {
+                        const next = new Set(prev);
+                        next.delete('timeline');
+                        return next;
+                      });
+                    }
+                  }}
                   placeholder="e.g., 4-6 weeks from project kickoff"
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Deliverables</label>
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+                  Deliverables
+                  {aiFilledFields.has('deliverables') && (
+                    <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
+                  )}
+                </label>
                 <textarea 
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${
+                    aiFilledFields.has('deliverables') 
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                      : 'border-slate-200'
+                  }`}
                   value={invoice.deliverables || ''}
-                  onChange={e => setInvoice({ ...invoice, deliverables: e.target.value })}
+                  onChange={e => {
+                    setInvoice({ ...invoice, deliverables: e.target.value });
+                    if (aiFilledFields.has('deliverables')) {
+                      setAiFilledFields(prev => {
+                        const next = new Set(prev);
+                        next.delete('deliverables');
+                        return next;
+                      });
+                    }
+                  }}
                   placeholder="List all deliverables, e.g.,&#10;- Fully functional public website&#10;- Admin dashboard&#10;- Doctor dashboard&#10;- Backend APIs&#10;- Database schema&#10;- Deployment-ready codebase"
                 />
               </div>
 
               <div>
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Payment Terms</label>
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+                  Payment Terms
+                  {aiFilledFields.has('paymentTerms') && (
+                    <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
+                  )}
+                </label>
                 <input 
                   type="text"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-medium"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${
+                    aiFilledFields.has('paymentTerms') 
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                      : 'border-slate-200'
+                  }`}
                   value={invoice.paymentTerms || ''}
-                  onChange={e => setInvoice({ ...invoice, paymentTerms: e.target.value })}
+                  onChange={e => {
+                    setInvoice({ ...invoice, paymentTerms: e.target.value });
+                    if (aiFilledFields.has('paymentTerms')) {
+                      setAiFilledFields(prev => {
+                        const next = new Set(prev);
+                        next.delete('paymentTerms');
+                        return next;
+                      });
+                    }
+                  }}
                   placeholder="e.g., 50% advance, 30% after milestone, 20% on delivery"
                 />
               </div>
@@ -317,11 +473,29 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
               </div>
 
               <div>
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Additional Notes / Terms & Conditions</label>
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
+                  Additional Notes / Terms & Conditions
+                  {aiFilledFields.has('notes') && (
+                    <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
+                  )}
+                </label>
                 <textarea 
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y"
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${
+                    aiFilledFields.has('notes') 
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                      : 'border-slate-200'
+                  }`}
                   value={invoice.notes}
-                  onChange={e => setInvoice({ ...invoice, notes: e.target.value })}
+                  onChange={e => {
+                    setInvoice({ ...invoice, notes: e.target.value });
+                    if (aiFilledFields.has('notes')) {
+                      setAiFilledFields(prev => {
+                        const next = new Set(prev);
+                        next.delete('notes');
+                        return next;
+                      });
+                    }
+                  }}
                   placeholder="Add any additional terms, conditions, or notes..."
                 />
               </div>
@@ -432,6 +606,17 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
           </div>
         )}
       </div>
+
+      {/* AI Generate Modal */}
+      {currentClient && (
+        <AIGenerateModal
+          isOpen={showAIModal}
+          onClose={() => setShowAIModal(false)}
+          clientId={currentClient.id}
+          clientName={currentClient.companyName || currentClient.name}
+          onDraftGenerated={handleAIDraftGenerated}
+        />
+      )}
     </div>
   );
 };

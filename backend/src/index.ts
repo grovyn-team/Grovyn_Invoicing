@@ -5,6 +5,8 @@ import { connectDB } from './utils/database.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
+import quotationRoutes from './routes/quotationRoutes.js';
+import offerLetterRoutes from './routes/offerLetterRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
 import companyRoutes from './routes/companyRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
@@ -13,7 +15,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // Configure CORS to allow only the frontend URL
 app.use(cors({
@@ -28,6 +30,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/invoices', invoiceRoutes);
+app.use('/api/quotations', quotationRoutes);
+app.use('/api/offer-letters', offerLetterRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/payments', paymentRoutes);
