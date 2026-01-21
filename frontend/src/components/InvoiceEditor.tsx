@@ -47,7 +47,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
   // Handle AI draft generation
   const handleAIDraftGenerated = (draft: any) => {
     const filledFields = new Set<string>();
-    
+
     // Map AI draft to invoice structure
     const updatedInvoice: Invoice = {
       ...invoice,
@@ -55,7 +55,10 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
       issueDate: draft.invoiceDate || invoice.issueDate,
       dueDate: draft.dueDate || invoice.dueDate,
       serviceOptedDate: draft.serviceOptedDate || draft.invoiceDate || invoice.serviceOptedDate,
-      projectName: draft.projectName || invoice.client.projectTitle || '',
+      client: {
+        ...invoice.client,
+        projectTitle: draft.projectName || invoice.client.projectTitle
+      },
       items: draft.items?.map((item: any) => ({
         id: Date.now().toString() + Math.random(),
         description: item.description || item.name || '',
@@ -79,7 +82,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
     if (draft.invoiceDate) filledFields.add('issueDate');
     if (draft.dueDate) filledFields.add('dueDate');
     if (draft.serviceOptedDate) filledFields.add('serviceOptedDate');
-    if (draft.projectName) filledFields.add('projectName');
     if (draft.items?.length > 0) filledFields.add('items');
     if (draft.taxDetails?.taxProtocol) filledFields.add('taxType');
     if (draft.discountPercentage !== undefined) filledFields.add('discountPercentage');
@@ -90,12 +92,12 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
 
     setInvoice(updatedInvoice);
     setAiFilledFields(filledFields);
-    
+
     toast.success('Invoice form auto-filled with AI suggestions. Please review and adjust as needed.');
   };
 
   // Get current client for AI modal
-  const currentClient = invoice.client?.id 
+  const currentClient = invoice.client?.id
     ? clients.find(c => c.id === invoice.client.id) || clients[0]
     : clients[0];
 
@@ -176,7 +178,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
         </div>
         <div className="flex items-center gap-2">
           {!initialInvoice && currentClient && (
-            <button 
+            <button
               onClick={() => setShowAIModal(true)}
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all bg-gradient-to-r from-teal-500 to-teal-600 text-white hover:from-teal-600 hover:to-teal-700 shadow-lg shadow-teal-500/20"
             >
@@ -184,14 +186,14 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
               <span className="hidden xs:inline">AI Generate</span>
             </button>
           )}
-          <button 
+          <button
             onClick={() => setShowPreview(!showPreview)}
             className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all ${showPreview ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
           >
             {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
             <span className="hidden xs:inline">{showPreview ? 'Hide' : 'Preview'}</span>
           </button>
-          <button 
+          <button
             onClick={() => onSave(invoice)}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs md:text-sm hover:bg-black shadow-xl shadow-slate-200 transition-all active:scale-95"
           >
@@ -209,21 +211,21 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">01</span>
               Entity Identification
             </h3>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="sm:col-span-2">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Active Client</label>
-                <select 
+                <select
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-bold"
                   value={invoice.client.id}
                   onChange={e => {
                     const client = clients.find(c => c.id === e.target.value);
                     if (client) {
                       // Update client and currency, ensuring projectTitle comes from client
-                      setInvoice({ 
-                        ...invoice, 
-                        client: { ...client, projectTitle: client.projectTitle }, 
-                        currency: client.currency 
+                      setInvoice({
+                        ...invoice,
+                        client: { ...client, projectTitle: client.projectTitle },
+                        currency: client.currency
                       });
                     }
                   }}
@@ -231,7 +233,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                   {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
                   Type
@@ -239,12 +241,11 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <select 
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-bold transition-all ${
-                    aiFilledFields.has('type') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                <select
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-bold transition-all ${aiFilledFields.has('type')
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
                       : 'border-slate-200'
-                  }`}
+                    }`}
                   value={invoice.type}
                   onChange={e => {
                     setInvoice({ ...invoice, type: e.target.value as InvoiceType });
@@ -258,10 +259,10 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                   {Object.values(InvoiceType).map(v => <option key={v} value={v}>{v}</option>)}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Tax Protocol</label>
-                <select 
+                <select
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-bold"
                   value={invoice.taxType}
                   onChange={e => setInvoice({ ...invoice, taxType: e.target.value as 'GST' | 'EXPORT' | 'NONE' })}
@@ -279,7 +280,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">02</span>
               Deliverables
             </h3>
-            
+
             <div className="space-y-4 md:space-y-6">
               {invoice.items.map((item) => (
                 <div key={item.id} className="p-4 bg-slate-50/50 rounded-xl border border-slate-100 space-y-4">
@@ -291,13 +292,12 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                           <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                         )}
                       </label>
-                      <input 
+                      <input
                         type="text"
-                        className={`w-full px-3 py-2 bg-white border rounded-lg outline-none text-sm font-medium transition-all ${
-                          aiFilledFields.has('items') 
-                            ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                        className={`w-full px-3 py-2 bg-white border rounded-lg outline-none text-sm font-medium transition-all ${aiFilledFields.has('items')
+                            ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
                             : 'border-slate-200'
-                        }`}
+                          }`}
                         value={item.description}
                         onChange={e => {
                           updateItem(item.id, 'description', e.target.value);
@@ -314,7 +314,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                     </div>
                     <div className="sm:col-span-4">
                       <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">HSN/SAC</label>
-                      <input 
+                      <input
                         type="text"
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none text-sm font-medium mono"
                         value={item.hsnSac}
@@ -326,7 +326,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                   <div className="grid grid-cols-3 sm:grid-cols-12 gap-4 items-end">
                     <div className="sm:col-span-3">
                       <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Qty</label>
-                      <input 
+                      <input
                         type="number"
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none text-sm mono"
                         value={item.quantity}
@@ -335,7 +335,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                     </div>
                     <div className="sm:col-span-4">
                       <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Rate</label>
-                      <input 
+                      <input
                         type="number"
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none text-sm mono"
                         value={item.rate}
@@ -354,8 +354,8 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                   </div>
                 </div>
               ))}
-              
-              <button 
+
+              <button
                 onClick={addItem}
                 className="w-full py-4 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:border-teal-300 hover:text-teal-600 transition-all flex items-center justify-center gap-2"
               >
@@ -370,7 +370,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">03</span>
               Project Details
             </h3>
-            
+
             <div className="space-y-4 md:space-y-6">
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
@@ -379,13 +379,12 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <input 
+                <input
                   type="text"
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${
-                    aiFilledFields.has('timeline') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${aiFilledFields.has('timeline')
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
                       : 'border-slate-200'
-                  }`}
+                    }`}
                   value={invoice.timeline || ''}
                   onChange={e => {
                     setInvoice({ ...invoice, timeline: e.target.value });
@@ -408,12 +407,11 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea 
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${
-                    aiFilledFields.has('deliverables') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                <textarea
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${aiFilledFields.has('deliverables')
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
                       : 'border-slate-200'
-                  }`}
+                    }`}
                   value={invoice.deliverables || ''}
                   onChange={e => {
                     setInvoice({ ...invoice, deliverables: e.target.value });
@@ -436,13 +434,12 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <input 
+                <input
                   type="text"
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${
-                    aiFilledFields.has('paymentTerms') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${aiFilledFields.has('paymentTerms')
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
                       : 'border-slate-200'
-                  }`}
+                    }`}
                   value={invoice.paymentTerms || ''}
                   onChange={e => {
                     setInvoice({ ...invoice, paymentTerms: e.target.value });
@@ -460,7 +457,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
 
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Discount (%) <span className="text-slate-400 font-normal">(Optional)</span></label>
-                <input 
+                <input
                   type="number"
                   min="0"
                   max="100"
@@ -479,12 +476,11 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea 
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${
-                    aiFilledFields.has('notes') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
+                <textarea
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${aiFilledFields.has('notes')
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
                       : 'border-slate-200'
-                  }`}
+                    }`}
                   value={invoice.notes}
                   onChange={e => {
                     setInvoice({ ...invoice, notes: e.target.value });
@@ -510,7 +506,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
             <div className="space-y-4">
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Record ID</label>
-                <input 
+                <input
                   type="text"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none mono text-sm font-bold"
                   value={invoice.invoiceNumber}
@@ -518,28 +514,28 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                 <div>
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Dated</label>
-                    <input 
-                      type="date"
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold"
-                      value={invoice.issueDate}
-                      onChange={e => setInvoice({ ...invoice, issueDate: e.target.value })}
-                    />
-                 </div>
-                 <div>
-                    <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Due</label>
-                    <input 
-                      type="date"
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold"
-                      value={invoice.dueDate}
-                      onChange={e => setInvoice({ ...invoice, dueDate: e.target.value })}
-                    />
-                 </div>
+                <div>
+                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Dated</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold"
+                    value={invoice.issueDate}
+                    onChange={e => setInvoice({ ...invoice, issueDate: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Due</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold"
+                    value={invoice.dueDate}
+                    onChange={e => setInvoice({ ...invoice, dueDate: e.target.value })}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Service Opted</label>
-                <input 
+                <input
                   type="date"
                   className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold"
                   value={invoice.serviceOptedDate || ''}
@@ -571,16 +567,16 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                 </span>
               </div>
               <div className="pt-6 border-t border-slate-800">
-                   <span className="text-[9px] font-black uppercase tracking-widest text-teal-400 mb-1 block">Final Value</span>
-                   <span className="text-2xl md:text-3xl font-black mono tracking-tighter">
-                     ₹{(() => {
-                       const subtotal = invoice.items.reduce((acc, i) => acc + i.total, 0);
-                       const discountAmount = invoice.discountPercentage ? (subtotal * invoice.discountPercentage / 100) : 0;
-                       const afterDiscount = subtotal - discountAmount;
-                       const taxMultiplier = invoice.taxType === 'GST' ? 1.18 : 1;
-                       return (afterDiscount * taxMultiplier).toLocaleString();
-                     })()}
-                   </span>
+                <span className="text-[9px] font-black uppercase tracking-widest text-teal-400 mb-1 block">Final Value</span>
+                <span className="text-2xl md:text-3xl font-black mono tracking-tighter">
+                  ₹{(() => {
+                    const subtotal = invoice.items.reduce((acc, i) => acc + i.total, 0);
+                    const discountAmount = invoice.discountPercentage ? (subtotal * invoice.discountPercentage / 100) : 0;
+                    const afterDiscount = subtotal - discountAmount;
+                    const taxMultiplier = invoice.taxType === 'GST' ? 1.18 : 1;
+                    return (afterDiscount * taxMultiplier).toLocaleString();
+                  })()}
+                </span>
               </div>
             </div>
           </section>
@@ -589,20 +585,20 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
         {/* Full Page Preview */}
         {showPreview && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
-             <div className="flex flex-col sm:flex-row justify-center mb-8 no-print gap-4">
-               <button onClick={() => window.print()} className="flex items-center justify-center gap-2 px-8 py-4 bg-teal-500 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all active:scale-95">
-                 <Download size={20} />
-                 Export PDF
-               </button>
-               <button 
-                 onClick={handleShare}
-                 className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all active:scale-95"
-               >
-                 <Share2 size={20} />
-                 Share Record
-               </button>
-             </div>
-             <InvoicePreview invoice={invoice} />
+            <div className="flex flex-col sm:flex-row justify-center mb-8 no-print gap-4">
+              <button onClick={() => window.print()} className="flex items-center justify-center gap-2 px-8 py-4 bg-teal-500 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all active:scale-95">
+                <Download size={20} />
+                Export PDF
+              </button>
+              <button
+                onClick={handleShare}
+                className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all active:scale-95"
+              >
+                <Share2 size={20} />
+                Share Record
+              </button>
+            </div>
+            <InvoicePreview invoice={invoice} />
           </div>
         )}
       </div>

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Save, Eye, EyeOff, Download, ChevronLeft, Share2 } from 'lucide-react';
 import { OfferLetter, OfferLetterStatus } from '../types/refTypes';
 import OfferLetterPreview from './OfferLetterPreview';
-import { toast } from '../utils/toast';
 
 interface OfferLetterEditorProps {
   initialOfferLetter?: OfferLetter;
