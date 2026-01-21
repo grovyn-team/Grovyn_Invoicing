@@ -22,7 +22,8 @@ import { useQuotationsStore } from './stores/quotationsStore';
 import { useOfferLettersStore } from './stores/offerLettersStore';
 import { useAppStore } from './stores/appStore';
 import { useToastStore } from './stores/toastStore';
-import Proposals from './components/Proposals'; 
+import Proposals from './components/Proposals';
+import ProposalEditor from './components/ProposalEditor';
 import { useProposalsStore } from './stores/proposalStore';
 const App: React.FC = () => {
   const { user, loading, checkAuth, login, logout, updateUser } = useUserStore();
@@ -39,8 +40,6 @@ const App: React.FC = () => {
   const proposals = useProposalsStore((state: any) => state.proposals);
   const fetchProposals = useProposalsStore((state: any) => state.fetchProposals);
   const saveProposalAction = useProposalsStore((state: any) => state.saveProposal);
-  const deleteProposalAction = useProposalsStore((state: any) => state.deleteProposal);
-  const proposalsLoading = useProposalsStore((state: any) => state.loading);
   const {
     activeTab,
     searchTerm,
@@ -48,6 +47,7 @@ const App: React.FC = () => {
     editingInvoice,
     editingQuotation,
     editingOfferLetter,
+    editingProposal,
     isCreating,
     setActiveTab,
     setSearchTerm,
@@ -57,6 +57,10 @@ const App: React.FC = () => {
     startEditQuotation,
     startNewOfferLetter,
     startEditOfferLetter,
+    startNewProposal,
+    startEditProposal,
+    setEditingProposal,
+    setIsCreating,
     viewClient,
     startNewClient,
     completeClientCreation,
@@ -69,7 +73,7 @@ const App: React.FC = () => {
   }, []); // Only run once on mount
 
   const clientsLoading = useClientsStore((state) => state.loading);
-  
+
   // Fetch clients when user is available
   useEffect(() => {
     if (user && clients.length === 0 && !clientsLoading) {
@@ -90,21 +94,21 @@ const App: React.FC = () => {
     if (user && clients.length > 0 && !hasFetchedData) {
       const invoicesLoading = useInvoicesStore.getState().loading;
       const quotationsLoading = useQuotationsStore.getState().loading;
-      
+
       // Only fetch if not already loading and data is empty
       if (!invoicesLoading && invoices.length === 0) {
         fetchInvoices(clients);
       }
-      
+
       if (!quotationsLoading && quotations.length === 0) {
         fetchQuotations(clients);
       }
-      
+
       const offerLettersLoading = useOfferLettersStore.getState().loading;
       if (!offerLettersLoading && offerLetters.length === 0) {
         fetchOfferLetters();
       }
-      
+
       setHasFetchedData(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -192,6 +196,10 @@ const App: React.FC = () => {
     ? offerLetters.find((ol: OfferLetter) => ol.id === editingOfferLetter)
     : null;
 
+  const editingProposalObj = editingProposal
+    ? proposals.find((p: Proposal) => p.id === editingProposal)
+    : null;
+
   const saveOfferLetter = async (offerLetter: OfferLetter) => {
     try {
       await saveOfferLetterAction(offerLetter);
@@ -207,14 +215,25 @@ const App: React.FC = () => {
   };
 
   // Proposal handlers
-  const startNewProposal = () => {
-    useAppStore.getState().setIsCreating(true);
-    useAppStore.getState().setActiveTab('proposals');
-  };
+  // Using startNewProposal and startEditProposal from store directly
 
   const handleEditProposal = (proposal: Proposal) => {
-    useAppStore.getState().startEditProposal(proposal.id);
-    useAppStore.getState().setActiveTab('proposals');
+    startEditProposal(proposal.id);
+    setActiveTab('proposals');
+  };
+
+  const saveProposal = async (proposal: Proposal) => {
+    try {
+      await saveProposalAction(proposal, clients);
+      setActiveTab('proposals');
+      setEditingProposal(null);
+      setIsCreating(false);
+      await fetchProposals(clients);
+      useToastStore.getState().success('Proposal saved successfully!');
+    } catch (error: any) {
+      console.error('Failed to save proposal:', error);
+      useToastStore.getState().error(error.message || 'Failed to save proposal. Please try again.');
+    }
   };
 
   // Get the selected client object
@@ -297,6 +316,20 @@ const App: React.FC = () => {
           />
         );
       case 'proposals':
+        if (isCreating || editingProposalObj || editingProposal) {
+          return (
+            <ProposalEditor
+              initialProposal={editingProposalObj || undefined}
+              onSave={saveProposal}
+              onCancel={() => {
+                useAppStore.getState().setIsCreating(false);
+                useAppStore.getState().setEditingProposal(null);
+                setActiveTab('proposals');
+              }}
+              clients={clients}
+            />
+          );
+        }
         return <Proposals proposals={proposals} onCreateNew={startNewProposal} onEditProposal={handleEditProposal} />;
       case 'analytics':
         return isAdmin ? <Analytics /> : <Dashboard invoices={filteredInvoices} onCreateNew={startNewInvoice} onEditInvoice={handleEditInvoice} />;
@@ -311,7 +344,7 @@ const App: React.FC = () => {
       case 'client-onboarding':
         return <ClientOnboarding onSave={handleClientCreated} onCancel={() => setActiveTab('clients')} />;
       case 'notifications':
-        return <Notifications notifications={[]} onMarkAsRead={() => {}} onMarkAllAsRead={() => {}} />;
+        return <Notifications notifications={[]} onMarkAsRead={() => { }} onMarkAllAsRead={() => { }} />;
       case 'audit':
         return isAdmin ? (
           <div className="space-y-8 animate-in fade-in duration-500">

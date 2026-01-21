@@ -245,3 +245,39 @@ export const offerLetterAPI = {
     return response.data;
   },
 };
+
+export const proposalAPI = {
+  getAll: async (): Promise<any[]> => {
+    const response = await axios.get<any[]>(`${API_URL}/proposals`);
+    return response.data;
+  },
+
+  getById: async (id: string): Promise<any> => {
+    const response = await axios.get<any>(`${API_URL}/proposals/${id}`);
+    return response.data;
+  },
+
+  create: async (data: any): Promise<any> => {
+    const response = await axios.post<any>(`${API_URL}/proposals`, data);
+    return response.data;
+  },
+
+  update: async (id: string, data: Partial<any>): Promise<any> => {
+    const response = await axios.put<any>(`${API_URL}/proposals/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await axios.delete(`${API_URL}/proposals/${id}`);
+  },
+
+  send: async (id: string): Promise<any> => {
+    const response = await axios.post<any>(`${API_URL}/proposals/${id}/send`);
+    return response.data;
+  },
+
+  generateAIDraft: async (prompt: string, clientId: string): Promise<any> => {
+    const response = await axios.post(`${API_URL}/proposals/ai/generate`, { prompt, clientId });
+    return response.data;
+  },
+};

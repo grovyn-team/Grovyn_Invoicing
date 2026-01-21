@@ -56,12 +56,17 @@ body {
 
   /* Root containers – allow page flow */
   #root,
-  main {
+  main,
+  [class*="fixed"][class*="inset-y-0"] {
+    position: static !important;
     overflow: visible !important;
     height: auto !important;
+    min-height: auto !important;
     max-height: none !important;
     padding: 0 !important;
     margin: 0 !important;
+    width: auto !important;
+    max-width: none !important;
   }
 
   /* Remove max-width constraints */

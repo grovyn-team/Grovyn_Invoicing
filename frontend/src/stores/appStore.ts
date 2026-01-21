@@ -16,6 +16,7 @@ interface AppState {
   setEditingInvoice: (invoiceId: string | null) => void;
   setEditingQuotation: (quotationId: string | null) => void;
   setEditingOfferLetter: (offerLetterId: string | null) => void;
+  setEditingProposal: (proposalId: string | null) => void;
   setIsCreating: (isCreating: boolean) => void;
   startNewInvoice: () => void;
   startEditInvoice: (invoiceId: string) => void;
@@ -64,6 +65,10 @@ export const useAppStore = create<AppState>((set) => ({
 
   setEditingOfferLetter: (offerLetterId: string | null) => {
     set({ editingOfferLetter: offerLetterId });
+  },
+
+  setEditingProposal: (proposalId: string | null) => {
+    set({ editingProposal: proposalId });
   },
 
   setIsCreating: (isCreating: boolean) => {

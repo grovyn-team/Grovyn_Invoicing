@@ -10,12 +10,24 @@ export enum ProposalStatus {
 export interface Proposal {
   id: string;
   proposalNumber: string;
+  version: string;
   proposalDate: string;
   validUntil: string;
   client: Client;
   projectName: string;
+  problemStatement: string;
+  solution: string;
+  scope: string;
+  deliverables: string;
+  timelineEstimate: string;
+  exclusions: string;
+  nextSteps: string;
+  status: ProposalStatus;
+  notes?: string;
+  createdAt: string;
+  createdBy: string;
 }
-  
+
 export enum InvoiceStatus {
   DRAFT = 'Draft',
   SENT = 'Sent',

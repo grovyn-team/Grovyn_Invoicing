@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Save, Eye, EyeOff, Download, ChevronLeft, Share2, Sparkles } from 'lucide-react';
 import { Quotation, LineItem, QuotationStatus, Client } from '../types/refTypes';
 import AIQuotationModal from './AIQuotationModal';
+import QuotationPreview from './QuotationPreview';
 import { toast } from '../utils/toast';
 
 interface QuotationEditorProps {
@@ -50,7 +51,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
 
   const handleAIDraftGenerated = (draft: any) => {
     const filledFields = new Set<string>();
-    
+
     const updatedQuotation: Quotation = {
       ...quotation,
       quotationDate: draft.quotationDate || quotation.quotationDate,
@@ -96,11 +97,11 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
 
     setQuotation(updatedQuotation);
     setAiFilledFields(filledFields);
-    
+
     toast.success('Quotation form auto-filled with AI suggestions. Please review and adjust as needed.');
   };
 
-  const currentClient = quotation.client?.id 
+  const currentClient = quotation.client?.id
     ? clients.find(c => c.id === quotation.client.id) || clients[0]
     : clients[0];
 
@@ -148,7 +149,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
         </div>
         <div className="flex items-center gap-2">
           {!initialQuotation && currentClient && (
-            <button 
+            <button
               onClick={() => setShowAIModal(true)}
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all bg-gradient-to-r from-teal-500 to-teal-600 text-white hover:from-teal-600 hover:to-teal-700 shadow-lg shadow-teal-500/20"
             >
@@ -156,14 +157,14 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
               <span className="hidden xs:inline">AI Generate</span>
             </button>
           )}
-          <button 
+          <button
             onClick={() => setShowPreview(!showPreview)}
             className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all ${showPreview ? 'bg-teal-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
           >
             {showPreview ? <EyeOff size={16} /> : <Eye size={16} />}
             <span className="hidden xs:inline">{showPreview ? 'Hide' : 'Preview'}</span>
           </button>
-          <button 
+          <button
             onClick={() => onSave(quotation)}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs md:text-sm hover:bg-black shadow-xl shadow-slate-200 transition-all active:scale-95"
           >
@@ -180,20 +181,20 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">01</span>
               Client & Project Information
             </h3>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="sm:col-span-2">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Client</label>
-                <select 
+                <select
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-bold"
                   value={quotation.client.id}
                   onChange={e => {
                     const client = clients.find(c => c.id === e.target.value);
                     if (client) {
-                      setQuotation({ 
-                        ...quotation, 
-                        client: { ...client, projectTitle: client.projectTitle }, 
-                        currency: client.currency 
+                      setQuotation({
+                        ...quotation,
+                        client: { ...client, projectTitle: client.projectTitle },
+                        currency: client.currency
                       });
                     }
                   }}
@@ -201,7 +202,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                   {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
                 </select>
               </div>
-              
+
               <div className="sm:col-span-2">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
                   Project Name
@@ -209,13 +210,12 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <input 
+                <input
                   type="text"
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${
-                    aiFilledFields.has('projectName') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                      : 'border-slate-200'
-                  }`}
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${aiFilledFields.has('projectName')
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
+                    }`}
                   value={quotation.projectName}
                   onChange={e => {
                     setQuotation({ ...quotation, projectName: e.target.value });
@@ -230,10 +230,10 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                   placeholder="e.g., QR-Based Café Operations Platform"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Tax Protocol</label>
-                <select 
+                <select
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-bold"
                   value={quotation.taxType}
                   onChange={e => setQuotation({ ...quotation, taxType: e.target.value as 'GST' | 'EXPORT' | 'NONE' })}
@@ -251,7 +251,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">02</span>
               Project Scope & Features
             </h3>
-            
+
             <div className="space-y-4 md:space-y-6">
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
@@ -260,12 +260,11 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea 
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${
-                    aiFilledFields.has('projectScope') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                      : 'border-slate-200'
-                  }`}
+                <textarea
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${aiFilledFields.has('projectScope')
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
+                    }`}
                   value={quotation.projectScope || ''}
                   onChange={e => {
                     setQuotation({ ...quotation, projectScope: e.target.value });
@@ -288,12 +287,11 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea 
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[150px] resize-y transition-all ${
-                    aiFilledFields.has('features') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                      : 'border-slate-200'
-                  }`}
+                <textarea
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[150px] resize-y transition-all ${aiFilledFields.has('features')
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
+                    }`}
                   value={quotation.features || ''}
                   onChange={e => {
                     setQuotation({ ...quotation, features: e.target.value });
@@ -316,12 +314,11 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea 
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${
-                    aiFilledFields.has('deliverables') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                      : 'border-slate-200'
-                  }`}
+                <textarea
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${aiFilledFields.has('deliverables')
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
+                    }`}
                   value={quotation.deliverables || ''}
                   onChange={e => {
                     setQuotation({ ...quotation, deliverables: e.target.value });
@@ -344,12 +341,11 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea 
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${
-                    aiFilledFields.has('supportDetails') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                      : 'border-slate-200'
-                  }`}
+                <textarea
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${aiFilledFields.has('supportDetails')
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
+                    }`}
                   value={quotation.supportDetails || ''}
                   onChange={e => {
                     setQuotation({ ...quotation, supportDetails: e.target.value });
@@ -373,13 +369,12 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                       <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                     )}
                   </label>
-                  <input 
+                  <input
                     type="text"
-                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${
-                      aiFilledFields.has('warrantyPeriod') 
-                        ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                        : 'border-slate-200'
-                    }`}
+                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${aiFilledFields.has('warrantyPeriod')
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                      : 'border-slate-200'
+                      }`}
                     value={quotation.warrantyPeriod || ''}
                     onChange={e => {
                       setQuotation({ ...quotation, warrantyPeriod: e.target.value });
@@ -402,13 +397,12 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                       <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                     )}
                   </label>
-                  <input 
+                  <input
                     type="text"
-                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${
-                      aiFilledFields.has('timeline') 
-                        ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                        : 'border-slate-200'
-                    }`}
+                    className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${aiFilledFields.has('timeline')
+                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                      : 'border-slate-200'
+                      }`}
                     value={quotation.timeline || ''}
                     onChange={e => {
                       setQuotation({ ...quotation, timeline: e.target.value });
@@ -432,7 +426,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">03</span>
               Pricing & Items
             </h3>
-            
+
             <div className="space-y-4 md:space-y-6">
               {quotation.items.map((item) => (
                 <div key={item.id} className="p-4 bg-slate-50/50 rounded-xl border border-slate-100 space-y-4">
@@ -444,13 +438,12 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                           <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                         )}
                       </label>
-                      <input 
+                      <input
                         type="text"
-                        className={`w-full px-3 py-2 bg-white border rounded-lg outline-none text-sm font-medium transition-all ${
-                          aiFilledFields.has('items') 
-                            ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                            : 'border-slate-200'
-                        }`}
+                        className={`w-full px-3 py-2 bg-white border rounded-lg outline-none text-sm font-medium transition-all ${aiFilledFields.has('items')
+                          ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                          : 'border-slate-200'
+                          }`}
                         value={item.description}
                         onChange={e => {
                           updateItem(item.id, 'description', e.target.value);
@@ -467,7 +460,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     </div>
                     <div className="sm:col-span-4">
                       <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">HSN/SAC</label>
-                      <input 
+                      <input
                         type="text"
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none text-sm font-medium mono"
                         value={item.hsnSac}
@@ -479,7 +472,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                   <div className="grid grid-cols-3 sm:grid-cols-12 gap-4 items-end">
                     <div className="sm:col-span-3">
                       <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Qty</label>
-                      <input 
+                      <input
                         type="number"
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none text-sm mono"
                         value={item.quantity}
@@ -488,7 +481,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     </div>
                     <div className="sm:col-span-4">
                       <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Rate</label>
-                      <input 
+                      <input
                         type="number"
                         className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg outline-none text-sm mono"
                         value={item.rate}
@@ -507,8 +500,8 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                   </div>
                 </div>
               ))}
-              
-              <button 
+
+              <button
                 onClick={addItem}
                 className="w-full py-4 border-2 border-dashed border-slate-200 rounded-xl text-slate-400 font-bold text-[10px] uppercase tracking-widest hover:border-teal-300 hover:text-teal-600 transition-all flex items-center justify-center gap-2"
               >
@@ -523,7 +516,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">04</span>
               Terms & Conditions
             </h3>
-            
+
             <div className="space-y-4 md:space-y-6">
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
@@ -532,13 +525,12 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <input 
+                <input
                   type="text"
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${
-                    aiFilledFields.has('paymentTerms') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                      : 'border-slate-200'
-                  }`}
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${aiFilledFields.has('paymentTerms')
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
+                    }`}
                   value={quotation.paymentTerms || ''}
                   onChange={e => {
                     setQuotation({ ...quotation, paymentTerms: e.target.value });
@@ -561,12 +553,11 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea 
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${
-                    aiFilledFields.has('terms') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                      : 'border-slate-200'
-                  }`}
+                <textarea
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${aiFilledFields.has('terms')
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
+                    }`}
                   value={quotation.terms || ''}
                   onChange={e => {
                     setQuotation({ ...quotation, terms: e.target.value });
@@ -589,12 +580,11 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea 
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${
-                    aiFilledFields.has('notes') 
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10' 
-                      : 'border-slate-200'
-                  }`}
+                <textarea
+                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${aiFilledFields.has('notes')
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
+                    }`}
                   value={quotation.notes || ''}
                   onChange={e => {
                     setQuotation({ ...quotation, notes: e.target.value });
@@ -612,7 +602,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
 
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Discount (%) <span className="text-slate-400 font-normal">(Optional)</span></label>
-                <input 
+                <input
                   type="number"
                   min="0"
                   max="100"
@@ -633,7 +623,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
             <div className="space-y-4">
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Quotation ID</label>
-                <input 
+                <input
                   type="text"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none mono text-sm font-bold"
                   value={quotation.quotationNumber}
@@ -643,7 +633,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Quotation Date</label>
-                  <input 
+                  <input
                     type="date"
                     className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold"
                     value={quotation.quotationDate}
@@ -652,7 +642,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                 </div>
                 <div>
                   <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Valid Until</label>
-                  <input 
+                  <input
                     type="date"
                     className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs font-bold"
                     value={quotation.validUntil}
@@ -662,7 +652,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
               </div>
               <div>
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Validity Period (Days)</label>
-                <input 
+                <input
                   type="number"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none text-sm font-bold"
                   value={quotation.validityPeriod || 30}
@@ -716,16 +706,14 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                 <Download size={20} />
                 Export PDF
               </button>
-              <button 
+              <button
                 className="flex items-center justify-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-black transition-all active:scale-95"
               >
                 <Share2 size={20} />
                 Share Quotation
               </button>
             </div>
-            <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-              <p className="text-center text-slate-400 font-medium">Quotation Preview - Coming Soon</p>
-            </div>
+            <QuotationPreview quotation={quotation} />
           </div>
         )}
       </div>

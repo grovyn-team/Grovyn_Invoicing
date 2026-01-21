@@ -10,6 +10,7 @@ import offerLetterRoutes from './routes/offerLetterRoutes.js';
 import clientRoutes from './routes/clientRoutes.js';
 import companyRoutes from './routes/companyRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
+import proposalRoutes from './routes/proposalRoutes.js';
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use('/api/offer-letters', offerLetterRoutes);
 app.use('/api/clients', clientRoutes);
 app.use('/api/company', companyRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/proposals', proposalRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Invoice Generator API is running' });
