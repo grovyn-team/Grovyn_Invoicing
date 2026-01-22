@@ -141,8 +141,23 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                             {/* Header Info */}
                             <div className="border-b border-slate-100 pb-8 grid grid-cols-2 gap-8">
                                 <div className="space-y-4">
-                                    <div>
+                                    <div className="flex items-center justify-between">
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Project Entity</label>
+                                        <button
+                                            onClick={() => {
+                                                const isManual = proposal.client?.id === 'manual';
+                                                if (isManual) {
+                                                    handleFieldChange('client', clients[0] || { id: '', name: '', companyName: '', email: '', address: '', country: '', projectTitle: '', currency: '', paymentTerms: 30, status: 'Active', joinedDate: '', totalSpent: 0 });
+                                                } else {
+                                                    handleFieldChange('client', { id: 'manual', name: '', companyName: '', email: '', address: '', country: '', projectTitle: '', currency: '', paymentTerms: 30, status: 'Active', joinedDate: '', totalSpent: 0 });
+                                                }
+                                            }}
+                                            className="text-[9px] font-bold text-indigo-500 hover:text-indigo-600 bg-indigo-50 px-2 py-1 rounded transition-all mb-2"
+                                        >
+                                            {proposal.client?.id === 'manual' ? 'Select Client' : 'Manual Entry'}
+                                        </button>
+                                    </div>
+                                    {proposal.client?.id !== 'manual' ? (
                                         <select
                                             className="w-full text-lg font-black text-slate-900 bg-transparent outline-none border-none p-0 focus:ring-0 cursor-pointer"
                                             value={proposal.client.id}
@@ -151,9 +166,19 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                                                 if (client) handleFieldChange('client', client);
                                             }}
                                         >
-                                            {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
+                                            {clients.map(c => <option key={c.id} value={c.id}>{c.companyName || c.name}</option>)}
                                         </select>
-                                    </div>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            className="w-full text-lg font-black text-slate-900 bg-transparent outline-none border-none p-0 focus:ring-0 placeholder:text-slate-200"
+                                            value={proposal.client.companyName || proposal.client.name}
+                                            onChange={e => {
+                                                handleFieldChange('client', { ...proposal.client, name: e.target.value, companyName: e.target.value });
+                                            }}
+                                            placeholder="Client Name"
+                                        />
+                                    )}
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Project Title</label>
                                         <input
@@ -382,12 +407,12 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                 )}
             </div>
 
-            {currentClient && (
+            {proposal.client && (
                 <AIProposalModal
                     isOpen={showAIModal}
                     onClose={() => setShowAIModal(false)}
-                    clientId={currentClient.id}
-                    clientName={currentClient.companyName || currentClient.name}
+                    clientId={proposal.client.id !== 'manual' ? proposal.client.id : undefined}
+                    clientName={proposal.client.companyName || proposal.client.name || 'Potential Client'}
                     onDraftGenerated={handleAIDraftGenerated}
                 />
             )}

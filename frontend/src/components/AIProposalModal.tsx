@@ -6,7 +6,7 @@ import { toast } from '../utils/toast';
 interface AIProposalModalProps {
     isOpen: boolean;
     onClose: () => void;
-    clientId: string;
+    clientId?: string;
     clientName: string;
     onDraftGenerated: (draft: any) => void;
 }
@@ -32,7 +32,7 @@ const AIProposalModal: React.FC<AIProposalModalProps> = ({
         setError(null);
 
         try {
-            const response = await proposalAPI.generateAIDraft(prompt.trim(), clientId);
+            const response = await proposalAPI.generateAIDraft(prompt.trim(), clientId, clientName);
 
             if (response.success && response.draft) {
 

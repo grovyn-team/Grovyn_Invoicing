@@ -80,21 +80,21 @@ export interface LineItem {
 }
 
 export interface Client {
-  id: string;
+  id?: string;
   name: string;
-  companyName: string;
-  email: string;
-  address: string;
-  country: string;
+  companyName?: string;
+  email?: string;
+  address?: string;
+  country?: string;
   state?: string;
   gstin?: string;
   pan?: string;
-  projectTitle: string;
-  currency: string;
-  paymentTerms: number; // days
-  status: 'Active' | 'Inactive';
-  joinedDate: string;
-  totalSpent: number;
+  projectTitle?: string;
+  currency?: string;
+  paymentTerms?: number; // days
+  status?: 'Active' | 'Inactive';
+  joinedDate?: string;
+  totalSpent?: number;
 }
 
 export interface CompanySettings {

@@ -97,12 +97,12 @@ const QuotationSchema = new Schema<IQuotation>(
     validUntil: { type: Date, required: true },
     clientId: { type: Schema.Types.ObjectId, ref: 'Client' },
     clientName: { type: String, required: true },
-    clientEmail: { type: String, required: true },
-    clientAddress: { type: String, required: true },
-    clientCity: { type: String, required: true },
-    clientState: { type: String, required: true },
-    clientZip: { type: String, required: true },
-    clientCountry: { type: String, required: true },
+    clientEmail: { type: String },
+    clientAddress: { type: String },
+    clientCity: { type: String },
+    clientState: { type: String },
+    clientZip: { type: String },
+    clientCountry: { type: String },
     clientGstin: { type: String },
     projectName: { type: String, required: true },
     projectScope: { type: String },
@@ -148,15 +148,15 @@ const QuotationSchema = new Schema<IQuotation>(
 
 QuotationSchema.pre('save', function (next) {
   this.subtotal = this.items.reduce((sum, item) => sum + item.amount, 0);
-  
+
   if (this.discountPercentage !== undefined && this.discountPercentage !== null) {
     this.discountTotal = this.subtotal * this.discountPercentage / 100;
   }
-  
+
   const taxProtocol = this.taxDetails.taxProtocol;
   const isExport = taxProtocol === 'EXPORT' || (taxProtocol === undefined && this.taxDetails.isExportOfServices);
   const isNoTax = taxProtocol === 'NONE';
-  
+
   if (isNoTax || isExport || this.clientCountry !== 'India') {
     this.taxDetails.cgst = 0;
     this.taxDetails.sgst = 0;
@@ -177,7 +177,7 @@ QuotationSchema.pre('save', function (next) {
     }
     this.taxAmount = (this.taxDetails.cgst || 0) + (this.taxDetails.sgst || 0) + (this.taxDetails.igst || 0);
   }
-  
+
   this.total = this.subtotal - this.discountTotal + this.taxAmount;
   next();
 });

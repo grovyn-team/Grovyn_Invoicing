@@ -180,28 +180,65 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
             <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">01</span>
               Client & Project Information
+              <button
+                onClick={() => {
+                  const isManual = quotation.client?.id === 'manual';
+                  if (isManual) {
+                    setQuotation({
+                      ...quotation,
+                      client: clients[0] || { id: '', name: '', companyName: '', email: '', address: '', country: '', projectTitle: '', currency: '', paymentTerms: 30, status: 'Active', joinedDate: '', totalSpent: 0 }
+                    });
+                  } else {
+                    setQuotation({
+                      ...quotation,
+                      client: { id: 'manual', name: '', companyName: '', email: '', address: '', country: '', projectTitle: '', currency: '', paymentTerms: 30, status: 'Active', joinedDate: '', totalSpent: 0 }
+                    });
+                  }
+                }}
+                className="ml-auto text-[10px] font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-2 py-1 rounded-lg transition-all"
+              >
+                {quotation.client?.id === 'manual' ? 'Select Existing Client' : 'Manual Client Entry'}
+              </button>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div className="sm:col-span-2">
-                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Client</label>
-                <select
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-bold"
-                  value={quotation.client.id}
-                  onChange={e => {
-                    const client = clients.find(c => c.id === e.target.value);
-                    if (client) {
+              {quotation.client?.id !== 'manual' ? (
+                <div className="sm:col-span-2">
+                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Client</label>
+                  <select
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-bold"
+                    value={quotation.client.id}
+                    onChange={e => {
+                      const client = clients.find(c => c.id === e.target.value);
+                      if (client) {
+                        setQuotation({
+                          ...quotation,
+                          client: { ...client, projectTitle: client.projectTitle },
+                          currency: client.currency || 'INR'
+                        });
+                      }
+                    }}
+                  >
+                    {clients.map(c => <option key={c.id} value={c.id}>{c.companyName || c.name}</option>)}
+                  </select>
+                </div>
+              ) : (
+                <div className="sm:col-span-2">
+                  <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Client Name (Manual)</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-bold"
+                    value={quotation.client.companyName || quotation.client.name}
+                    onChange={e => {
                       setQuotation({
                         ...quotation,
-                        client: { ...client, projectTitle: client.projectTitle },
-                        currency: client.currency
+                        client: { ...quotation.client, name: e.target.value, companyName: e.target.value }
                       });
-                    }
-                  }}
-                >
-                  {clients.map(c => <option key={c.id} value={c.id}>{c.companyName}</option>)}
-                </select>
-              </div>
+                    }}
+                    placeholder="e.g., Babu Erectors Pvt. Ltd."
+                  />
+                </div>
+              )}
 
               <div className="sm:col-span-2">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">
@@ -718,12 +755,12 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
         )}
       </div>
 
-      {currentClient && (
+      {quotation.client && (
         <AIQuotationModal
           isOpen={showAIModal}
           onClose={() => setShowAIModal(false)}
-          clientId={currentClient.id}
-          clientName={currentClient.companyName || currentClient.name}
+          clientId={quotation.client.id !== 'manual' ? quotation.client.id : undefined}
+          clientName={quotation.client.companyName || quotation.client.name || 'Potential Client'}
           onDraftGenerated={handleAIDraftGenerated}
         />
       )}

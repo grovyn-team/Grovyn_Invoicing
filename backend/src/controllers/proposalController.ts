@@ -70,14 +70,19 @@ export const deleteProposal = async (req: Request, res: Response): Promise<void>
 
 export const generateAIDraft = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { prompt, clientId } = req.body;
+        const { prompt, clientId, clientName } = req.body;
         const userId = req.user?._id;
 
-        if (!prompt || !clientId || !userId) {
+        if (!prompt || !userId) {
             return res.status(400).json({ error: 'Missing required fields' }) as any;
         }
 
-        const { draft } = await generateProposalDraft({ prompt, clientId, userId: userId.toString() });
+        const { draft } = await generateProposalDraft({
+            prompt,
+            clientId,
+            clientName,
+            userId: userId.toString()
+        });
 
         res.json({ success: true, draft });
     } catch (error: any) {

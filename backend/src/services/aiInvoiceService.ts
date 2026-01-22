@@ -4,6 +4,11 @@ import Company from '../models/Company.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const FlexibleString = z.union([
+  z.string(),
+  z.array(z.string()).transform(val => val.join('\n'))
+]);
+
 const AIInvoiceDraftSchema = z.object({
   invoiceType: z.enum([
     'Standard Invoice',
@@ -33,10 +38,10 @@ const AIInvoiceDraftSchema = z.object({
     placeOfSupply: z.string().optional(),
   }).optional(),
   discountPercentage: z.number().min(0).max(100).optional(),
-  notes: z.string().optional(),
-  timeline: z.string().optional(),
-  deliverables: z.string().optional(),
-  paymentTerms: z.string().optional(),
+  notes: FlexibleString.optional(),
+  timeline: FlexibleString.optional(),
+  deliverables: FlexibleString.optional(),
+  paymentTerms: FlexibleString.optional(),
   confidence: z.number().min(0).max(1),
 });
 
@@ -124,27 +129,27 @@ Return ONLY valid JSON with no comments, no markdown formatting, and no explanat
 
 function extractJSON(text: string): string {
   let cleaned = text.trim();
-  
+
   cleaned = cleaned.replace(/^```(?:json)?\s*/mi, '');
   cleaned = cleaned.replace(/\s*```$/mi, '');
   cleaned = cleaned.trim();
-  
+
   const jsonStart = cleaned.indexOf('{');
   const jsonEnd = cleaned.lastIndexOf('}');
-  
+
   if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
     throw new Error(`No valid JSON found in AI response. Response: ${text.substring(0, 200)}...`);
   }
-  
+
   let jsonText = cleaned.substring(jsonStart, jsonEnd + 1);
-  
+
   jsonText = jsonText.replace(/\/\/.*?$/gm, '');
   jsonText = jsonText.replace(/\/\*[\s\S]*?\*\//g, '');
   jsonText = jsonText.replace(/([{,]\s*)'([^']+)':/g, '$1"$2":');
   jsonText = jsonText.replace(/,(\s*[}\]])/g, '$1');
   jsonText = jsonText.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
   jsonText = jsonText.replace(/\n\s*\n/g, '\n');
-  
+
   return jsonText;
 }
 
@@ -167,13 +172,13 @@ export async function generateInvoiceDraft(
 
   const HF_API_KEY = process.env.HF_API_KEY;
   let HF_MODEL = process.env.HF_MODEL || 'mistralai/Mistral-7B-Instruct-v0.2';
-  
+
   if (!HF_MODEL.includes(':')) {
     HF_MODEL = `${HF_MODEL}:featherless-ai`;
   }
-  
+
   const HF_API_URL = `https://router.huggingface.co/v1/chat/completions`;
-  
+
   if (!HF_API_KEY || HF_API_KEY.trim() === '') {
     throw new Error('HuggingFace API key not configured. Please set HF_API_KEY in your environment variables.');
   }
@@ -212,7 +217,7 @@ export async function generateInvoiceDraft(
         url: HF_API_URL,
         model: HF_MODEL,
       });
-      
+
       try {
         const errorJson = JSON.parse(errorText);
         if (errorJson.error?.code === 'model_not_supported') {
@@ -224,14 +229,14 @@ export async function generateInvoiceDraft(
       } catch (parseError) {
         // Continue with original error
       }
-      
+
       throw new Error(`HuggingFace API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    
+
     let aiText: string;
-    
+
     if (data && typeof data === 'object' && 'choices' in data && Array.isArray(data.choices) && data.choices.length > 0) {
       const firstChoice = data.choices[0];
       if (firstChoice.message && firstChoice.message.content) {
@@ -257,7 +262,7 @@ export async function generateInvoiceDraft(
     }
 
     console.log('AI Response (first 500 chars):', aiText.substring(0, 500));
-    
+
     let jsonText: string;
     try {
       jsonText = extractJSON(aiText);
@@ -266,9 +271,9 @@ export async function generateInvoiceDraft(
       console.error('Full AI response:', aiText);
       throw new Error(`Failed to extract JSON from AI response: ${extractError.message}. Please try rephrasing your prompt.`);
     }
-    
+
     console.log('Extracted JSON (first 300 chars):', jsonText.substring(0, 300));
-    
+
     let parsed: any;
     try {
       parsed = JSON.parse(jsonText);
@@ -284,11 +289,11 @@ export async function generateInvoiceDraft(
 
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
-    
+
     if (parsed.serviceDate === 'YYYY-MM-DD' || !parsed.serviceDate || parsed.serviceDate.includes('YYYY')) {
       parsed.serviceDate = todayStr;
     }
-    
+
     if (parsed.dueDate === 'YYYY-MM-DD' || !parsed.dueDate || parsed.dueDate.includes('YYYY')) {
       const serviceDate = new Date(parsed.serviceDate);
       const dueDate = new Date(serviceDate);
@@ -300,7 +305,7 @@ export async function generateInvoiceDraft(
 
     const serviceDate = new Date(validated.serviceDate);
     const dueDate = new Date(validated.dueDate);
-    
+
     if (isNaN(serviceDate.getTime()) || isNaN(dueDate.getTime())) {
       throw new Error('Invalid date format in AI response');
     }

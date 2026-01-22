@@ -32,7 +32,7 @@ export const authAPI = {
     }
     return response.data;
   },
-  
+
   register: async (name: string, email: string, password: string, role?: string) => {
     const response = await axios.post(`${API_URL}/auth/register`, { name, email, password, role });
     if (response.data.token) {
@@ -40,12 +40,12 @@ export const authAPI = {
     }
     return response.data;
   },
-  
+
   getCurrentUser: async () => {
     const response = await axios.get(`${API_URL}/auth/me`);
     return response.data;
   },
-  
+
   logout: () => {
     setAuthToken(null);
   },
@@ -57,12 +57,12 @@ export const userAPI = {
     const response = await axios.put(`${API_URL}/user/profile`, data);
     return response.data;
   },
-  
+
   changePassword: async (data: { currentPassword: string; newPassword: string }) => {
     const response = await axios.put(`${API_URL}/user/password`, data);
     return response.data;
   },
-  
+
   uploadAvatar: async (formData: FormData) => {
     const response = await axios.post(`${API_URL}/user/avatar`, formData, {
       headers: {
@@ -71,7 +71,7 @@ export const userAPI = {
     });
     return response.data;
   },
-  
+
   resetPassword: async (email: string) => {
     const response = await axios.post(`${API_URL}/user/reset-password`, { email });
     return response.data;
@@ -118,8 +118,8 @@ export const invoiceAPI = {
     return response.data;
   },
 
-  generateAIDraft: async (prompt: string, clientId: string): Promise<any> => {
-    const response = await axios.post(`${API_URL}/invoices/ai/generate`, { prompt, clientId });
+  generateAIDraft: async (prompt: string, clientId?: string, clientName?: string): Promise<any> => {
+    const response = await axios.post(`${API_URL}/invoices/ai/generate`, { prompt, clientId, clientName });
     return response.data;
   },
 };
@@ -209,8 +209,8 @@ export const quotationAPI = {
     return response.data;
   },
 
-  generateAIDraft: async (prompt: string, clientId: string): Promise<any> => {
-    const response = await axios.post(`${API_URL}/quotations/ai/generate`, { prompt, clientId });
+  generateAIDraft: async (prompt: string, clientId?: string, clientName?: string): Promise<any> => {
+    const response = await axios.post(`${API_URL}/quotations/ai/generate`, { prompt, clientId, clientName });
     return response.data;
   },
 };
@@ -276,8 +276,8 @@ export const proposalAPI = {
     return response.data;
   },
 
-  generateAIDraft: async (prompt: string, clientId: string): Promise<any> => {
-    const response = await axios.post(`${API_URL}/proposals/ai/generate`, { prompt, clientId });
+  generateAIDraft: async (prompt: string, clientId?: string, clientName?: string): Promise<any> => {
+    const response = await axios.post(`${API_URL}/proposals/ai/generate`, { prompt, clientId, clientName });
     return response.data;
   },
 };

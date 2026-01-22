@@ -90,8 +90,8 @@ export const useProposalsStore = create<ProposalState>((set, get) => ({
 
   saveProposal: async (proposal: Proposal, clients: Client[]) => {
     try {
-      const client = clients.find(c => c.id === proposal.client.id);
-      if (!client) {
+      const client = proposal.client.id === 'manual' ? null : clients.find(c => c.id === proposal.client.id);
+      if (proposal.client.id !== 'manual' && !client) {
         throw new Error('Client not found');
       }
 
@@ -100,13 +100,13 @@ export const useProposalsStore = create<ProposalState>((set, get) => ({
         version: proposal.version,
         proposalDate: proposal.proposalDate,
         validUntil: proposal.validUntil,
-        clientId: proposal.client.id,
+        clientId: proposal.client.id === 'manual' ? undefined : proposal.client.id,
         clientName: proposal.client.companyName || proposal.client.name,
         clientEmail: proposal.client.email,
-        clientAddress: proposal.client.address.split(',')[0] || proposal.client.address,
-        clientCity: proposal.client.address.split(',')[1]?.trim() || '',
+        clientAddress: (proposal.client.address || '').split(',')[0] || proposal.client.address || '',
+        clientCity: (proposal.client.address || '').split(',')[1]?.trim() || '',
         clientState: proposal.client.state || '',
-        clientZip: proposal.client.address.split(',')[2]?.trim() || '',
+        clientZip: (proposal.client.address || '').split(',')[2]?.trim() || '',
         clientCountry: proposal.client.country || 'India',
         projectName: proposal.projectName,
         problemStatement: proposal.problemStatement,

@@ -4,16 +4,26 @@ import Company from '../models/Company.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const FlexibleString = z.union([
+    z.string(),
+    z.array(z.string()).transform(val => val.join('\n'))
+]);
+
+const RequiredFlexibleString = z.union([
+    z.string().min(1),
+    z.array(z.string()).min(1).transform(val => val.join('\n'))
+]);
+
 const AIProposalDraftSchema = z.object({
     projectName: z.string().min(1),
     version: z.string().default('v1.0'),
-    problemStatement: z.string().min(1),
-    solution: z.string().min(1),
-    scope: z.string().min(1),
-    deliverables: z.string().min(1),
-    timelineEstimate: z.string().min(1),
-    exclusions: z.string().optional(),
-    nextSteps: z.string().optional(),
+    problemStatement: RequiredFlexibleString,
+    solution: RequiredFlexibleString,
+    scope: RequiredFlexibleString,
+    deliverables: RequiredFlexibleString,
+    timelineEstimate: RequiredFlexibleString,
+    exclusions: FlexibleString.optional(),
+    nextSteps: FlexibleString.optional(),
     proposalDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     confidence: z.number().min(0).max(1),
@@ -23,7 +33,8 @@ export type AIProposalDraft = z.infer<typeof AIProposalDraftSchema>;
 
 interface GenerateProposalDraftInput {
     prompt: string;
-    clientId: string;
+    clientId?: string;
+    clientName?: string;
     userId: string;
 }
 
@@ -97,15 +108,29 @@ function extractJSON(text: string): string {
 export async function generateProposalDraft(
     input: GenerateProposalDraftInput
 ): Promise<{ draft: AIProposalDraft; rawResponse: string }> {
-    const { prompt, clientId, userId } = input;
+    const { prompt, clientId, clientName, userId } = input;
 
-    const client = await Client.findById(clientId);
-    if (!client) throw new Error('Client not found');
+    let client: any = null;
+    if (clientId) {
+        client = await Client.findById(clientId);
+        if (client) {
+            client = client.toObject();
+        }
+    }
+
+    if (!client) {
+        client = {
+            name: clientName || 'Potential Client',
+            companyName: clientName || 'Potential Client',
+            state: 'Unknown',
+            country: 'India'
+        };
+    }
 
     const company = await Company.findOne();
     if (!company) throw new Error('Company not found');
 
-    const fullPrompt = buildPrompt(prompt, client.toObject(), company.toObject());
+    const fullPrompt = buildPrompt(prompt, client, company.toObject());
 
     const HF_API_KEY = process.env.HF_API_KEY;
     let HF_MODEL = process.env.HF_MODEL || 'mistralai/Mistral-7B-Instruct-v0.2';

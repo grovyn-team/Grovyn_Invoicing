@@ -4,14 +4,24 @@ import Company from '../models/Company.js';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const FlexibleString = z.union([
+  z.string(),
+  z.array(z.string()).transform(val => val.join('\n'))
+]);
+
+const RequiredFlexibleString = z.union([
+  z.string().min(1),
+  z.array(z.string()).min(1).transform(val => val.join('\n'))
+]);
+
 const AIQuotationDraftSchema = z.object({
   projectName: z.string().min(1),
-  projectScope: z.string().min(1),
-  features: z.string().min(1),
-  deliverables: z.string().min(1),
-  supportDetails: z.string().optional(),
-  warrantyPeriod: z.string().optional(),
-  timeline: z.string().min(1),
+  projectScope: RequiredFlexibleString,
+  features: RequiredFlexibleString,
+  deliverables: RequiredFlexibleString,
+  supportDetails: FlexibleString.optional(),
+  warrantyPeriod: FlexibleString.optional(),
+  timeline: RequiredFlexibleString,
   quotationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   validUntil: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   items: z.array(
@@ -40,7 +50,8 @@ export type AIQuotationDraft = z.infer<typeof AIQuotationDraftSchema>;
 
 interface GenerateQuotationDraftInput {
   prompt: string;
-  clientId: string;
+  clientId?: string;
+  clientName?: string;
   userId: string;
 }
 
@@ -126,38 +137,52 @@ Return ONLY valid JSON with no comments, no markdown formatting, and no explanat
 
 function extractJSON(text: string): string {
   let cleaned = text.trim();
-  
+
   cleaned = cleaned.replace(/^```(?:json)?\s*/mi, '');
   cleaned = cleaned.replace(/\s*```$/mi, '');
   cleaned = cleaned.trim();
-  
+
   const jsonStart = cleaned.indexOf('{');
   const jsonEnd = cleaned.lastIndexOf('}');
-  
+
   if (jsonStart === -1 || jsonEnd === -1 || jsonEnd <= jsonStart) {
     throw new Error(`No valid JSON found in AI response. Response: ${text.substring(0, 200)}...`);
   }
-  
+
   let jsonText = cleaned.substring(jsonStart, jsonEnd + 1);
-  
+
   jsonText = jsonText.replace(/\/\/.*?$/gm, '');
   jsonText = jsonText.replace(/\/\*[\s\S]*?\*\//g, '');
   jsonText = jsonText.replace(/([{,]\s*)'([^']+)':/g, '$1"$2":');
   jsonText = jsonText.replace(/,(\s*[}\]])/g, '$1');
   jsonText = jsonText.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
   jsonText = jsonText.replace(/\n\s*\n/g, '\n');
-  
+
   return jsonText;
 }
 
 export async function generateQuotationDraft(
   input: GenerateQuotationDraftInput
 ): Promise<{ draft: AIQuotationDraft; rawResponse: string }> {
-  const { prompt, clientId, userId } = input;
+  const { prompt, clientId, clientName, userId } = input;
 
-  const client = await Client.findById(clientId);
+  let client: any = null;
+  if (clientId) {
+    client = await Client.findById(clientId);
+    if (client) {
+      client = client.toObject();
+    }
+  }
+
   if (!client) {
-    throw new Error('Client not found');
+    client = {
+      name: clientName || 'Potential Client',
+      companyName: clientName || 'Potential Client',
+      state: 'Unknown',
+      country: 'India',
+      gstin: '',
+      paymentTerms: 'Net 30'
+    };
   }
 
   const company = await Company.findOne();
@@ -165,17 +190,17 @@ export async function generateQuotationDraft(
     throw new Error('Company not found');
   }
 
-  const fullPrompt = buildPrompt(prompt, client.toObject(), company.toObject());
+  const fullPrompt = buildPrompt(prompt, client, company.toObject());
 
   const HF_API_KEY = process.env.HF_API_KEY;
   let HF_MODEL = process.env.HF_MODEL || 'mistralai/Mistral-7B-Instruct-v0.2';
-  
+
   if (!HF_MODEL.includes(':')) {
     HF_MODEL = `${HF_MODEL}:featherless-ai`;
   }
-  
+
   const HF_API_URL = `https://router.huggingface.co/v1/chat/completions`;
-  
+
   if (!HF_API_KEY || HF_API_KEY.trim() === '') {
     throw new Error('HuggingFace API key not configured. Please set HF_API_KEY in your environment variables.');
   }
@@ -214,7 +239,7 @@ export async function generateQuotationDraft(
         url: HF_API_URL,
         model: HF_MODEL,
       });
-      
+
       try {
         const errorJson = JSON.parse(errorText);
         if (errorJson.error?.code === 'model_not_supported') {
@@ -226,14 +251,14 @@ export async function generateQuotationDraft(
       } catch (parseError) {
         // Continue with original error
       }
-      
+
       throw new Error(`HuggingFace API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
-    
+
     let aiText: string;
-    
+
     if (data && typeof data === 'object' && 'choices' in data && Array.isArray(data.choices) && data.choices.length > 0) {
       const firstChoice = data.choices[0];
       if (firstChoice.message && firstChoice.message.content) {
@@ -259,7 +284,7 @@ export async function generateQuotationDraft(
     }
 
     console.log('AI Response (first 500 chars):', aiText.substring(0, 500));
-    
+
     let jsonText: string;
     try {
       jsonText = extractJSON(aiText);
@@ -268,9 +293,9 @@ export async function generateQuotationDraft(
       console.error('Full AI response:', aiText);
       throw new Error(`Failed to extract JSON from AI response: ${extractError.message}. Please try rephrasing your prompt.`);
     }
-    
+
     console.log('Extracted JSON (first 300 chars):', jsonText.substring(0, 300));
-    
+
     let parsed: any;
     try {
       parsed = JSON.parse(jsonText);
@@ -286,11 +311,11 @@ export async function generateQuotationDraft(
 
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
-    
+
     if (parsed.quotationDate === 'YYYY-MM-DD' || !parsed.quotationDate || parsed.quotationDate.includes('YYYY')) {
       parsed.quotationDate = todayStr;
     }
-    
+
     if (parsed.validUntil === 'YYYY-MM-DD' || !parsed.validUntil || parsed.validUntil.includes('YYYY')) {
       const quotationDate = new Date(parsed.quotationDate);
       const validUntil = new Date(quotationDate);
@@ -302,7 +327,7 @@ export async function generateQuotationDraft(
 
     const quotationDate = new Date(validated.quotationDate);
     const validUntil = new Date(validated.validUntil);
-    
+
     if (isNaN(quotationDate.getTime()) || isNaN(validUntil.getTime())) {
       throw new Error('Invalid date format in AI response');
     }

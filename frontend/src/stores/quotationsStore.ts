@@ -123,21 +123,21 @@ export const useQuotationsStore = create<QuotationsState>((set, get) => ({
 
   saveQuotation: async (quotation: Quotation, clients: Client[]) => {
     try {
-      const client = clients.find(c => c.id === quotation.client.id);
-      if (!client) {
+      const client = quotation.client.id === 'manual' ? null : clients.find(c => c.id === quotation.client.id);
+      if (quotation.client.id !== 'manual' && !client) {
         throw new Error('Client not found');
       }
 
       const backendData: any = {
         quotationDate: quotation.quotationDate,
         validUntil: quotation.validUntil,
-        clientId: quotation.client.id,
+        clientId: quotation.client.id === 'manual' ? undefined : quotation.client.id,
         clientName: quotation.client.companyName || quotation.client.name,
         clientEmail: quotation.client.email,
-        clientAddress: quotation.client.address.split(',')[0] || quotation.client.address,
-        clientCity: quotation.client.address.split(',')[1]?.trim() || '',
+        clientAddress: (quotation.client.address || '').split(',')[0] || quotation.client.address || '',
+        clientCity: (quotation.client.address || '').split(',')[1]?.trim() || '',
         clientState: quotation.client.state || '',
-        clientZip: quotation.client.address.split(',')[2]?.trim() || '',
+        clientZip: (quotation.client.address || '').split(',')[2]?.trim() || '',
         clientCountry: quotation.client.country || 'India',
         clientGstin: quotation.client.gstin,
         projectName: quotation.projectName,
@@ -160,7 +160,7 @@ export const useQuotationsStore = create<QuotationsState>((set, get) => ({
         })),
         subtotal: quotation.items.reduce((sum, item) => sum + item.total, 0),
         discountPercentage: quotation.discountPercentage,
-        discountTotal: quotation.discountPercentage 
+        discountTotal: quotation.discountPercentage
           ? (quotation.items.reduce((sum, item) => sum + item.total, 0) * quotation.discountPercentage / 100)
           : 0,
         taxDetails: {
@@ -184,7 +184,7 @@ export const useQuotationsStore = create<QuotationsState>((set, get) => ({
       }
 
       const transformedQuotation = transformBackendQuotation(savedQuotation, clients);
-      
+
       if (quotation.id && quotation.id.length > 10) {
         get().updateQuotation(transformedQuotation.id, transformedQuotation);
       } else {
