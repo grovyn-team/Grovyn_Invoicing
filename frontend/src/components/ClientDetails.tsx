@@ -18,7 +18,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Parse address into components for editing
   const parseAddress = (address: string) => {
     const parts = address.split(',').map(p => p.trim());
@@ -30,8 +30,8 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
     };
   };
 
-  const addressParts = parseAddress(client.address);
-  
+  const addressParts = parseAddress(client.address || '');
+
   const [formData, setFormData] = useState({
     name: client.name,
     companyName: client.companyName,
@@ -50,7 +50,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
 
   useEffect(() => {
     if (!isEditing) {
-      const addressParts = parseAddress(client.address);
+      const addressParts = parseAddress(client.address || '');
       setFormData({
         name: client.name,
         companyName: client.companyName,
@@ -99,7 +99,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
         notes: undefined,
       };
 
-      const updatedClient = await clientAPI.update(client.id, backendData as any);
+      const updatedClient = await clientAPI.update(client.id || '', backendData as any);
 
       // Transform backend response to frontend format
       const frontendClient: Client = {
@@ -121,7 +121,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
       };
 
       // Update the client in the store
-      updateClient(client.id, frontendClient);
+      updateClient(client.id || '', frontendClient);
       setIsEditing(false);
       setLoading(false);
       toast.success('Client updated successfully!');
@@ -134,7 +134,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
   };
 
   const handleCancel = () => {
-    const addressParts = parseAddress(client.address);
+    const addressParts = parseAddress(client.address || '');
     setFormData({
       name: client.name,
       companyName: client.companyName,
@@ -162,7 +162,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
     <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500 pb-20">
       {/* Header */}
       <div className="flex items-center gap-4 no-print">
-        <button 
+        <button
           onClick={onBack}
           className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-teal-600 hover:border-teal-200 transition-all shadow-sm"
         >
@@ -236,7 +236,7 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
             <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-6">Client Information</h2>
-            
+
             {isEditing ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

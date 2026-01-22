@@ -225,7 +225,7 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                       setInvoice({
                         ...invoice,
                         client: { ...client, projectTitle: client.projectTitle },
-                        currency: client.currency
+                        currency: client.currency || 'INR'
                       });
                     }
                   }}
@@ -243,8 +243,8 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                 </label>
                 <select
                   className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-bold transition-all ${aiFilledFields.has('type')
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                      : 'border-slate-200'
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
                     }`}
                   value={invoice.type}
                   onChange={e => {
@@ -295,8 +295,8 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                       <input
                         type="text"
                         className={`w-full px-3 py-2 bg-white border rounded-lg outline-none text-sm font-medium transition-all ${aiFilledFields.has('items')
-                            ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                            : 'border-slate-200'
+                          ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                          : 'border-slate-200'
                           }`}
                         value={item.description}
                         onChange={e => {
@@ -382,8 +382,8 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                 <input
                   type="text"
                   className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${aiFilledFields.has('timeline')
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                      : 'border-slate-200'
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
                     }`}
                   value={invoice.timeline || ''}
                   onChange={e => {
@@ -409,8 +409,8 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                 </label>
                 <textarea
                   className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${aiFilledFields.has('deliverables')
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                      : 'border-slate-200'
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
                     }`}
                   value={invoice.deliverables || ''}
                   onChange={e => {
@@ -437,8 +437,8 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                 <input
                   type="text"
                   className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium transition-all ${aiFilledFields.has('paymentTerms')
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                      : 'border-slate-200'
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
                     }`}
                   value={invoice.paymentTerms || ''}
                   onChange={e => {
@@ -478,8 +478,8 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                 </label>
                 <textarea
                   className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${aiFilledFields.has('notes')
-                      ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                      : 'border-slate-200'
+                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
+                    : 'border-slate-200'
                     }`}
                   value={invoice.notes}
                   onChange={e => {

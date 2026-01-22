@@ -95,7 +95,7 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
                 </td>
                 <td className="align-top text-right w-1/2">
                   <h1 className="text-2xl font-black tracking-tighter text-slate-900 print:text-2xl print:leading-tight">
-                     GROVYN
+                    GROVYN
                   </h1>
 
                   <div className="mt-2">
@@ -408,7 +408,7 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
         <div className="mb-8 print:break-inside-avoid page-break-inside-avoid">
           <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{14 + sectionOffset}. Governing Law and Jurisdiction</h2>
           <p className="text-sm leading-relaxed text-slate-700">
-            This letter shall be governed by the laws of India. Courts located in <span className="font-bold">[Jurisdiction City, India]</span> shall have exclusive jurisdiction.
+            This letter shall be governed by the laws of India. Courts located in <span className="font-bold">Raipur, Chhattisgarh</span> shall have exclusive jurisdiction.
           </p>
         </div>
 
@@ -459,7 +459,7 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
 
               <p className="font-bold text-slate-900 text-sm">Aman K.A</p>
               <p className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">
-                Founder & CEO, G{COMPANY_DEFAULTS.name}
+                Director's Office, G{COMPANY_DEFAULTS.name}
               </p>
             </div>
           </div>
@@ -614,7 +614,7 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
             <div>
               <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">11. Governing Law and Jurisdiction</h3>
               <p className="text-sm leading-relaxed text-slate-700">
-                This Agreement shall be governed by the laws of India. Courts located in <span className="font-bold">[Jurisdiction City, India]</span> shall have exclusive jurisdiction.
+                This Agreement shall be governed by the laws of India. Courts located in <span className="font-bold">Raipur, Chhattisgarh</span> shall have exclusive jurisdiction.
               </p>
             </div>
 
@@ -638,7 +638,7 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
                 <div className="w-48 border-b-2 border-slate-900 mb-2"></div>
                 <p className="font-bold text-slate-900 text-sm">Aman K.A</p>
                 <p className="font-bold text-slate-400 uppercase tracking-widest text-[10px]">Director's Office, G{COMPANY_DEFAULTS.name}</p>
-                <p className="text-xs text-slate-600 mt-4">Date: __________________</p>
+                <p className="text-xs text-slate-600 mt-4">Date: {new Date().toLocaleDateString()}</p>
               </div>
               <div>
                 <p className="text-sm font-bold text-slate-900 mb-4">{isInternship ? 'Intern' : 'Employee'}</p>

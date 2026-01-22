@@ -13,14 +13,14 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
   const subtotal = invoice.items.reduce((acc, item) => acc + item.total, 0);
   const discountAmount = invoice.discountPercentage ? (subtotal * invoice.discountPercentage / 100) : 0;
   const subtotalAfterDiscount = subtotal - discountAmount;
-  
+
   // Respect the invoice's taxType selection
   let taxLines: { label: string; value: number }[] = [];
-  
+
   if (invoice.taxType === 'GST') {
-    const isDomestic = invoice.client.country.toLowerCase() === 'india';
+    const isDomestic = (invoice.client.country || 'India').toLowerCase() === 'india';
     const isIntraState = isDomestic && invoice.client.state === COMPANY_DEFAULTS.state;
-    
+
     taxLines = isDomestic ? (
       isIntraState ? [
         { label: 'CGST (9%)', value: subtotalAfterDiscount * 0.09 },
@@ -191,8 +191,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
             </section>
             <section>
               <a href='https://grovyn.in/terms'>
-              <h3 className="font-black text-slate-900 uppercase tracking-widest mb-2">*Terms & Conditions Applied</h3>
-              <p className="whitespace-pre-line">{invoice.notes}</p>
+                <h3 className="font-black text-slate-900 uppercase tracking-widest mb-2">*Terms & Conditions Applied</h3>
+                <p className="whitespace-pre-line">{invoice.notes}</p>
               </a>
             </section>
           </div>

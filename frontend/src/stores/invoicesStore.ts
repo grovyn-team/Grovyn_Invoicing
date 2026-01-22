@@ -60,14 +60,14 @@ const transformBackendInvoice = (backendInvoice: any, clients: Client[]): Invoic
   // Find the client object from the clients array
   const clientId = backendInvoice.clientId?._id || backendInvoice.clientId || backendInvoice.clientId?.toString();
   const client = clients.find(c => c.id === clientId || c.id === backendInvoice.clientId?.toString());
-  
+
   // If client is populated, use it; otherwise construct from invoice fields
   const clientObj: Client = client || {
     id: clientId || '',
     name: backendInvoice.clientName || '',
     companyName: backendInvoice.clientName || '',
     email: backendInvoice.clientEmail || '',
-    address: backendInvoice.clientAddress 
+    address: backendInvoice.clientAddress
       ? `${backendInvoice.clientAddress}, ${backendInvoice.clientCity || ''}, ${backendInvoice.clientState || ''} ${backendInvoice.clientZip || ''}`.trim()
       : '',
     country: backendInvoice.clientCountry || '',
@@ -96,13 +96,13 @@ const transformBackendInvoice = (backendInvoice: any, clients: Client[]): Invoic
     id: backendInvoice._id?.toString() || backendInvoice.id || '',
     type: transformType(backendInvoice.invoiceType || backendInvoice.type || 'Tax Invoice'),
     invoiceNumber: backendInvoice.invoiceNumber || '',
-    issueDate: backendInvoice.invoiceDate 
+    issueDate: backendInvoice.invoiceDate
       ? new Date(backendInvoice.invoiceDate).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0],
-    dueDate: backendInvoice.dueDate 
+    dueDate: backendInvoice.dueDate
       ? new Date(backendInvoice.dueDate).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0],
-    serviceOptedDate: backendInvoice.serviceOptedDate 
+    serviceOptedDate: backendInvoice.serviceOptedDate
       ? new Date(backendInvoice.serviceOptedDate).toISOString().split('T')[0]
       : undefined,
     client: clientObj,
@@ -116,7 +116,7 @@ const transformBackendInvoice = (backendInvoice: any, clients: Client[]): Invoic
     timeline: backendInvoice.timeline || '',
     deliverables: backendInvoice.deliverables || '',
     paymentTerms: backendInvoice.paymentTerms || '',
-    createdAt: backendInvoice.createdAt 
+    createdAt: backendInvoice.createdAt
       ? new Date(backendInvoice.createdAt).toISOString()
       : new Date().toISOString(),
     createdBy: backendInvoice.createdBy?.name || backendInvoice.createdBy || 'Admin',
@@ -155,10 +155,10 @@ export const useInvoicesStore = create<InvoicesState>((set, get) => ({
         clientId: invoice.client.id,
         clientName: invoice.client.companyName || invoice.client.name,
         clientEmail: invoice.client.email,
-        clientAddress: invoice.client.address.split(',')[0] || invoice.client.address,
-        clientCity: invoice.client.address.split(',')[1]?.trim() || '',
+        clientAddress: (invoice.client.address || '').split(',')[0] || invoice.client.address || '',
+        clientCity: (invoice.client.address || '').split(',')[1]?.trim() || '',
         clientState: invoice.client.state || '',
-        clientZip: invoice.client.address.split(',')[2]?.trim() || '',
+        clientZip: (invoice.client.address || '').split(',')[2]?.trim() || '',
         clientCountry: invoice.client.country || 'India',
         clientGstin: invoice.client.gstin,
         projectName: client.projectTitle || 'New Project', // Use projectTitle from client
@@ -175,7 +175,7 @@ export const useInvoicesStore = create<InvoicesState>((set, get) => ({
         })),
         subtotal: invoice.items.reduce((sum, item) => sum + item.total, 0),
         discountPercentage: invoice.discountPercentage,
-        discountTotal: invoice.discountPercentage 
+        discountTotal: invoice.discountPercentage
           ? (invoice.items.reduce((sum, item) => sum + item.total, 0) * invoice.discountPercentage / 100)
           : 0,
         taxDetails: {
@@ -202,7 +202,7 @@ export const useInvoicesStore = create<InvoicesState>((set, get) => ({
 
       // Transform saved invoice back to frontend format
       const transformedInvoice = transformBackendInvoice(savedInvoice, clients);
-      
+
       // Update store
       if (invoice.id && invoice.id.length > 10) {
         get().updateInvoice(transformedInvoice.id, transformedInvoice);

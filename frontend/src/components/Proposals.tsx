@@ -15,7 +15,7 @@ const Proposals: React.FC<ProposalsProps> = ({ proposals, onCreateNew, onEditPro
 
   const filteredProposals = proposals.filter(p => {
     const matchesSearch = p.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.client.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.proposalNumber.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || p.status.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;

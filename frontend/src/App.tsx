@@ -245,8 +245,8 @@ const App: React.FC = () => {
   const filteredInvoices = invoices.filter(
     (inv) =>
       inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.client.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      inv.client.name.toLowerCase().includes(searchTerm.toLowerCase())
+      inv.client.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      inv.client.name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {

@@ -16,9 +16,9 @@ const Clients: React.FC<ClientsProps> = ({ searchTerm = '', onViewDetails, onCre
    const debouncedSearchTerm = useDebounce(searchTerm, 500);
    const filteredClients = useMemo(() => {
       return clients.filter(c =>
-         c.companyName.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+         (c.companyName || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
          c.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
-         c.projectTitle.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
+         (c.projectTitle || '').toLowerCase().includes(debouncedSearchTerm.toLowerCase())
       );
    }, [clients, debouncedSearchTerm]);
    console.log(filteredClients);
@@ -78,12 +78,12 @@ const Clients: React.FC<ClientsProps> = ({ searchTerm = '', onViewDetails, onCre
                         <tr
                            key={client.id}
                            className="hover:bg-slate-50 group transition-colors cursor-pointer"
-                           onClick={() => onViewDetails(client.id)}
+                           onClick={() => onViewDetails(client.id || '')}
                         >
                            <td className="px-8 py-6">
                               <div className="flex items-center gap-4">
                                  <div className="w-12 h-12 bg-slate-100 shrink-0 rounded-2xl flex items-center justify-center font-black text-teal-600 border border-slate-200 group-hover:bg-white group-hover:border-teal-200 transition-all uppercase">
-                                    {client.companyName.trim()[0]}
+                                    {(client.companyName || client.name).trim()[0]}
                                  </div>
                                  <div>
                                     <p className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors uppercase tracking-tight">{client.companyName}</p>
