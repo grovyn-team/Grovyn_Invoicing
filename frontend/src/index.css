@@ -24,7 +24,7 @@ body {
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.1),
-              0 1px 2px rgb(0 0 0 / 0.1);
+    0 1px 2px rgb(0 0 0 / 0.1);
 }
 
 /* =========================
@@ -35,12 +35,16 @@ body {
   /* Page setup */
   @page {
     size: A4;
-    margin: 2cm 0.4cm 1.5cm 0.4cm;
+    margin: 1cm 0.4cm 1cm 0.4cm;
   }
 
   html,
-  body {
+  body,
+  #root,
+  .min-h-screen,
+  main {
     background: white !important;
+    background-color: white !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: visible !important;
