@@ -138,7 +138,7 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           )}
           {isInternship && (
             <p className="text-sm leading-relaxed text-slate-700 mt-2">
-              This internship is designed to provide hands-on exposure to growth strategy, partnerships, outreach, and business development in a fast-moving remote-first environment, while allowing G{COMPANY_DEFAULTS.name} to evaluate your contribution and professional conduct.
+              {offerLetter.internshipDescription || `This internship is designed to provide hands-on exposure to growth strategy, partnerships, outreach, and business development in a fast-moving remote-first environment, while allowing G${COMPANY_DEFAULTS.name} to evaluate your contribution and professional conduct.`}
             </p>
           )}
           <p className="text-sm leading-relaxed text-slate-700 mt-2">
@@ -179,10 +179,18 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
             <div className="text-sm leading-relaxed text-slate-700">
               <p className="mb-2">Your responsibilities may include but are not limited to:</p>
               <ul className="list-disc list-inside ml-4 space-y-1">
-                <li>Identifying potential partnerships and growth opportunities</li>
-                <li>Outreach to founders, businesses, and decision-makers</li>
-                <li>Assisting in onboarding deals, partnerships, or projects</li>
-                <li>Supporting sales, partnerships, and growth initiatives</li>
+                {offerLetter.responsibilities && offerLetter.responsibilities.length > 0 ? (
+                  offerLetter.responsibilities.map((resp, index) => (
+                    <li key={index}>{resp}</li>
+                  ))
+                ) : (
+                  <>
+                    <li>Identifying potential partnerships and growth opportunities</li>
+                    <li>Outreach to founders, businesses, and decision-makers</li>
+                    <li>Assisting in onboarding deals, partnerships, or projects</li>
+                    <li>Supporting sales, partnerships, and growth initiatives</li>
+                  </>
+                )}
               </ul>
               <p className="mt-2">Your scope of work may be modified at G{COMPANY_DEFAULTS.name}'s discretion based on business needs.</p>
             </div>
@@ -251,11 +259,19 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
                 </p>
                 <p className="mt-4 font-bold">If applicable, incentives shall be calculated as follows:</p>
                 <ul className="list-disc list-inside ml-4 space-y-1">
-                  <li>A <span className="font-bold">percentage-based incentive ranging from 0.5 percent to 2 percent</span></li>
-                  <li>Applicable only on <span className="font-bold">successfully onboarded deals, partnerships, or projects</span></li>
-                  <li>The <span className="font-bold">exact percentage per deal shall be decided solely by G{COMPANY_DEFAULTS.name}</span></li>
-                  <li>Incentives are conditional upon successful closure, payment realization, and client onboarding</li>
-                  <li>No incentive is guaranteed unless explicitly approved in writing by G{COMPANY_DEFAULTS.name}</li>
+                  {offerLetter.incentiveTerms && offerLetter.incentiveTerms.length > 0 ? (
+                    offerLetter.incentiveTerms.map((term, index) => (
+                      <li key={index}>{term}</li>
+                    ))
+                  ) : (
+                    <>
+                      <li>A <span className="font-bold">percentage-based incentive ranging from 0.5 percent to 2 percent</span></li>
+                      <li>Applicable only on <span className="font-bold">successfully onboarded deals, partnerships, or projects</span></li>
+                      <li>The <span className="font-bold">exact percentage per deal shall be decided solely by G{COMPANY_DEFAULTS.name}</span></li>
+                      <li>Incentives are conditional upon successful closure, payment realization, and client onboarding</li>
+                      <li>No incentive is guaranteed unless explicitly approved in writing by G{COMPANY_DEFAULTS.name}</li>
+                    </>
+                  )}
                 </ul>
                 <p className="mt-4">
                   G{COMPANY_DEFAULTS.name} reserves full rights to revise, withhold, approve, or deny incentives based on performance, quality of contribution, and business judgment.
@@ -525,11 +541,11 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
               <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">2. Definition of Confidential Information</h3>
               <p className="text-sm leading-relaxed text-slate-700 mb-2">"Confidential Information" includes but is not limited to:</p>
               <ul className="list-disc list-inside ml-4 space-y-1 text-sm text-slate-700">
-                <li>Business plans, growth strategies, and internal roadmaps</li>
-                <li>Client, partner, and lead information</li>
-                <li>Pricing models, proposals, contracts, and negotiations</li>
-                <li>Financial data and internal reports</li>
-                <li>Sales pipelines, outreach strategies, and conversion metrics</li>
+                <li>Business plans, project roadmaps, and internal strategies</li>
+                <li>Client, partner, and vendor information</li>
+                <li>Pricing models, proposals, contracts, and technical specifications</li>
+                <li>Financial data, internal reports, and proprietary algorithms</li>
+                <li>Software source code, design assets, and development workflows</li>
                 <li>Internal communications, documents, tools, and credentials</li>
                 <li>Any information marked or understood to be confidential</li>
                 <li>Any non-public information shared verbally, digitally, or in writing</li>

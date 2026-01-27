@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Save, Eye, EyeOff, Download, ChevronLeft, Share2 } from 'lucide-react';
 import { OfferLetter, OfferLetterStatus } from '../types/refTypes';
 import OfferLetterPreview from './OfferLetterPreview';
+import { ROLE_TEMPLATES } from '../data/offerLetterRoles';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface OfferLetterEditorProps {
   initialOfferLetter?: OfferLetter;
@@ -145,10 +147,39 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
 
           {/* Position Details */}
           <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">02</span>
-              Position Details
-            </h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">02</span>
+                Position Details
+              </h3>
+              <div className="flex items-center gap-2">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Select Role Template:</label>
+                <select
+                  className="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold focus:border-teal-500 outline-none"
+                  onChange={(e) => {
+                    const role = e.target.value;
+                    if (role && ROLE_TEMPLATES[role]) {
+                      const template = ROLE_TEMPLATES[role];
+                      setOfferLetter({
+                        ...offerLetter,
+                        position: template.position,
+                        designation: template.designation,
+                        department: template.department,
+                        responsibilities: [...template.responsibilities],
+                        internshipDescription: template.internshipDescription,
+                        incentiveTerms: template.incentiveTerms ? [...template.incentiveTerms] : []
+                      });
+                    }
+                  }}
+                  defaultValue=""
+                >
+                  <option value="" disabled>Choose a role...</option>
+                  {Object.keys(ROLE_TEMPLATES).map(role => (
+                    <option key={role} value={role}>{role}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
@@ -195,6 +226,66 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
                 />
               </div>
             </div>
+
+            {/* Dynamic Responsibilities */}
+            <div className="mt-8 pt-8 border-t border-slate-100">
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Core Responsibilities</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = offerLetter.responsibilities || [];
+                    setOfferLetter({ ...offerLetter, responsibilities: [...current, ''] });
+                  }}
+                  className="flex items-center gap-1.5 text-[10px] font-black text-teal-600 uppercase tracking-wider hover:text-teal-700 transition-colors"
+                >
+                  <Plus size={14} /> Add Responsibility
+                </button>
+              </div>
+              <div className="space-y-3">
+                {(offerLetter.responsibilities || []).map((resp, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-medium"
+                      value={resp}
+                      onChange={e => {
+                        const newResps = [...(offerLetter.responsibilities || [])];
+                        newResps[index] = e.target.value;
+                        setOfferLetter({ ...offerLetter, responsibilities: newResps });
+                      }}
+                      placeholder={`Responsibility #${index + 1}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newResps = (offerLetter.responsibilities || []).filter((_, i) => i !== index);
+                        setOfferLetter({ ...offerLetter, responsibilities: newResps });
+                      }}
+                      className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+                {(offerLetter.responsibilities || []).length === 0 && (
+                  <p className="text-xs text-slate-400 italic">No responsibilities added. They will be auto-filled if you select a role template.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Role-specific Internship Description */}
+            {offerLetter.employmentType === 'Internship' && (
+              <div className="mt-6">
+                <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Internship Description (Role Specific)</label>
+                <textarea
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[80px] resize-y"
+                  value={offerLetter.internshipDescription || ''}
+                  onChange={e => setOfferLetter({ ...offerLetter, internshipDescription: e.target.value })}
+                  placeholder="Describe the learning objectives and focus of this internship..."
+                />
+              </div>
+            )}
           </section>
 
           {/* Employment Details */}
@@ -338,7 +429,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
                   placeholder="e.g., ₹50,000/month (Basic: ₹30,000, HRA: ₹15,000, Other Allowances: ₹5,000)"
                 />
               </div>
-
               <div className="sm:col-span-2">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Benefits & Perks</label>
                 <textarea
@@ -350,6 +440,53 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
                   })}
                   placeholder="e.g., Health Insurance, Provident Fund, Paid Leaves, etc."
                 />
+              </div>
+            </div>
+
+            {/* Dynamic Incentive Terms */}
+            <div className="mt-8 pt-8 border-t border-slate-100">
+              <div className="flex items-center justify-between mb-4">
+                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Incentive Terms & Conditions</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = offerLetter.incentiveTerms || [];
+                    setOfferLetter({ ...offerLetter, incentiveTerms: [...current, ''] });
+                  }}
+                  className="flex items-center gap-1.5 text-[10px] font-black text-teal-600 uppercase tracking-wider hover:text-teal-700 transition-colors"
+                >
+                  <Plus size={14} /> Add Incentive Term
+                </button>
+              </div>
+              <div className="space-y-3">
+                {(offerLetter.incentiveTerms || []).map((term, index) => (
+                  <div key={index} className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 outline-none text-sm font-medium"
+                      value={term}
+                      onChange={e => {
+                        const newTerms = [...(offerLetter.incentiveTerms || [])];
+                        newTerms[index] = e.target.value;
+                        setOfferLetter({ ...offerLetter, incentiveTerms: newTerms });
+                      }}
+                      placeholder={`Incentive Term #${index + 1}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newTerms = (offerLetter.incentiveTerms || []).filter((_, i) => i !== index);
+                        setOfferLetter({ ...offerLetter, incentiveTerms: newTerms });
+                      }}
+                      className="p-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+                {(offerLetter.incentiveTerms || []).length === 0 && (
+                  <p className="text-xs text-slate-400 italic">No specific incentive terms added. These usually appear for sales/BDE roles or internship incentives.</p>
+                )}
               </div>
             </div>
           </section>

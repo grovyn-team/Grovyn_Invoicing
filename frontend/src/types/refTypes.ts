@@ -191,6 +191,9 @@ export interface OfferLetter {
   };
   noticePeriod?: string;
   probationPeriod?: string;
+  responsibilities?: string[];
+  internshipDescription?: string;
+  incentiveTerms?: string[];
   termsAndConditions?: string;
   additionalNotes?: string;
   acceptanceDeadline: string;
