@@ -249,7 +249,8 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
                   However, G{COMPANY_DEFAULTS.name} may, at its sole discretion, offer <span className="font-bold">performance-based incentives</span> subject to internal policies and conditions.
                 </p>
 
-                {(offerLetter.designation.toLowerCase().includes('business development') ||
+                {((offerLetter.incentiveTerms && offerLetter.incentiveTerms.length > 0) ||
+                  offerLetter.designation.toLowerCase().includes('business development') ||
                   offerLetter.designation.toLowerCase().includes('sales') ||
                   offerLetter.designation.toLowerCase().includes('marketing') ||
                   offerLetter.position.toLowerCase().includes('business development') ||
@@ -277,6 +278,12 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
                       </p>
                     </>
                   )}
+                {offerLetter.salaryDetails.benefits && (
+                  <div className="mt-4 pt-4 border-t border-slate-200">
+                    <p className="text-xs font-bold text-slate-600 mb-2">Benefits & Perks:</p>
+                    <p className="text-xs text-slate-600 whitespace-pre-line">{offerLetter.salaryDetails.benefits}</p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
@@ -429,9 +436,29 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           </p>
         </div>
 
-        {/* Section 15: Acceptance */}
+        {/* Section 15: Terms & Conditions (Manually Entered) */}
+        {offerLetter.termsAndConditions && (
+          <div className="mb-8">
+            <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{15 + sectionOffset}. Terms & Conditions</h2>
+            <div className="text-sm leading-relaxed text-slate-700 whitespace-pre-line">
+              {offerLetter.termsAndConditions}
+            </div>
+          </div>
+        )}
+
+        {/* Section 16: Additional Notes */}
+        {offerLetter.additionalNotes && (
+          <div className="mb-8">
+            <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{16 + sectionOffset}. Additional Notes</h2>
+            <div className="text-sm leading-relaxed text-slate-700 whitespace-pre-line">
+              {offerLetter.additionalNotes}
+            </div>
+          </div>
+        )}
+
+        {/* Section 17: Acceptance */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{15 + sectionOffset}. Acceptance</h2>
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{17 + sectionOffset}. Acceptance</h2>
           <p className="text-sm leading-relaxed text-slate-700">
             By signing below, you confirm that you have read, understood, and agreed to all the terms and conditions stated in this letter.
           </p>
