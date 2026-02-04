@@ -165,6 +165,7 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
                         position: template.position,
                         designation: template.designation,
                         department: template.department,
+                        reportingManager: template.reportingManager ?? offerLetter.reportingManager,
                         responsibilities: [...template.responsibilities],
                         internshipDescription: template.internshipDescription,
                         incentiveTerms: template.incentiveTerms ? [...template.incentiveTerms] : []

@@ -3,6 +3,7 @@ export interface RoleTemplate {
     designation: string;
     department: string;
     responsibilities: string[];
+    reportingManager?: string;
     internshipDescription?: string;
     incentiveTerms?: string[];
 }
@@ -95,6 +96,23 @@ export const ROLE_TEMPLATES: Record<string, RoleTemplate> = {
         incentiveTerms: [
             'Performance bonuses based on campaign targets',
             'Recognition for creative content performance'
+        ]
+    },
+    'Consultant': {
+        position: 'Independent Sales Strategy Consultant',
+        designation: 'Independent Sales Strategy Consultant',
+        department: 'Sales & Strategy',
+        reportingManager: 'Aman K.A',
+        responsibilities: [
+            'Strategic contribution and client acquisition support',
+            'Responsibilities as communicated by your reporting manager, evolving based on business requirements',
+            'Contributing to sales strategy and business development initiatives',
+            'Maintaining confidentiality and adhering to consulting engagement terms'
+        ],
+        incentiveTerms: [
+            'Commission-only engagement; no salary, stipend, or fixed remuneration',
+            'Any commission subject to successful client onboarding, payment realization, and written approval by Grovyn',
+            'Continued engagement subject to performance, conduct, and business requirements at Grovyn\'s discretion'
         ]
     }
 };
