@@ -14,16 +14,9 @@ import { authenticate } from '../utils/auth.js';
 
 const router = express.Router();
 
-// Dashboard stats - can be public or authenticated
 router.get('/dashboard/stats', getDashboardStats);
-
-// Analytics - can be public or authenticated
 router.get('/analytics', getAnalytics);
-
-// All invoice routes require authentication
 router.use(authenticate);
-
-// AI generation endpoint (before other routes to avoid conflicts)
 router.post('/ai/generate', generateAIDraft);
 
 router.post('/', createInvoice);

@@ -227,7 +227,6 @@ export async function generateInvoiceDraft(
           );
         }
       } catch (parseError) {
-        // Continue with original error
       }
 
       throw new Error(`HuggingFace API error: ${response.status} - ${errorText}`);

@@ -3,10 +3,8 @@ import { Invoice, InvoiceFormData, Client, Payment, Company, DashboardStats, Ana
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api';
 
-// Configure axios defaults
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
-// Add auth token to requests
 export const setAuthToken = (token: string | null) => {
   if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -17,13 +15,11 @@ export const setAuthToken = (token: string | null) => {
   }
 };
 
-// Load token from localStorage on initialization
 const token = localStorage.getItem('token');
 if (token) {
   setAuthToken(token);
 }
 
-// Auth API
 export const authAPI = {
   login: async (email: string, password: string) => {
     const response = await axios.post(`${API_URL}/auth/login`, { email, password });
@@ -51,7 +47,6 @@ export const authAPI = {
   },
 };
 
-// User API
 export const userAPI = {
   updateProfile: async (data: { name: string; email: string }) => {
     const response = await axios.put(`${API_URL}/user/profile`, data);

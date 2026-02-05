@@ -1,4 +1,3 @@
-// Types matching the reference project structure
 export enum ProposalStatus {
   DRAFT = 'Draft',
   SENT = 'Sent',

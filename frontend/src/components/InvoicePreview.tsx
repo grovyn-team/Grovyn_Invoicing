@@ -9,12 +9,10 @@ interface InvoicePreviewProps {
 }
 
 const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
-  // Use item.total instead of recalculating
   const subtotal = invoice.items.reduce((acc, item) => acc + item.total, 0);
   const discountAmount = invoice.discountPercentage ? (subtotal * invoice.discountPercentage / 100) : 0;
   const subtotalAfterDiscount = subtotal - discountAmount;
 
-  // Respect the invoice's taxType selection
   let taxLines: { label: string; value: number }[] = [];
 
   if (invoice.taxType === 'GST') {
@@ -30,10 +28,8 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
       ]
     ) : [];
   } else if (invoice.taxType === 'EXPORT') {
-    // Export Zero Rated - no tax but can show as 0% if needed
     taxLines = [];
   } else {
-    // taxType === 'NONE' - no tax
     taxLines = [];
   }
 
@@ -43,7 +39,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
   return (
     <div className="w-full overflow-x-auto bg-white rounded-xl lg:bg-transparent lg:rounded-none">
       <div className="bg-white p-6 md:p-12 shadow-2xl border border-slate-200 rounded-sm min-w-[700px] lg:min-w-0 w-full max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-8 text-slate-800">
-        {/* Header */}
         <div className="flex justify-between items-start mb-12 border-b-4 border-teal-500 pb-8">
           <div>
             <div className="flex items-center gap-3 mb-6">
@@ -55,7 +50,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
             <div className="text-[10px] md:text-[11px] text-slate-500 leading-relaxed uppercase tracking-widest font-bold max-w-xs">
               <p>{COMPANY_DEFAULTS.address}</p>
               <p className="mt-1">Udyam RN: {COMPANY_DEFAULTS.gstin}</p>
-              {/* <p>PAN: {COMPANY_DEFAULTS.pan} | CIN: {COMPANY_DEFAULTS.cin}</p> */}
             </div>
           </div>
           <div className="text-right">
@@ -103,7 +97,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
             <tr className="border-b-2 border-slate-200">
               <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">S.No</th>
               <th className="px-4 py-3 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest">Description</th>
-              {/* <th className="px-4 py-3 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest">HSN/SAC</th> */}
               <th className="px-4 py-3 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Unit Rate</th>
               <th className="px-4 py-3 text-right text-[10px] font-black text-slate-500 uppercase tracking-widest">Value</th>
             </tr>
@@ -113,7 +106,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
               <tr key={item.id}>
                 <td className="px-4 py-5 text-sm font-bold text-slate-400">{index + 1}</td>
                 <td className="px-4 py-5 text-sm font-black text-slate-800">{item.description}</td>
-                {/* <td className="px-4 py-5 text-sm text-center text-slate-500 mono">{item.hsnSac || '-'}</td> */}
                 <td className="px-4 py-5 text-sm text-right text-slate-500 mono">{item.rate.toLocaleString()}</td>
                 <td className="px-4 py-5 text-sm font-bold text-right text-slate-900 mono">{item.total.toLocaleString()}</td>
               </tr>
@@ -152,7 +144,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
           </div>
         </div>
 
-        {/* Project Details Section */}
         {(invoice.timeline || invoice.deliverables || invoice.paymentTerms) && (
           <div className="mb-12 pt-8 border-t border-slate-200 space-y-6">
             {invoice.timeline && (
@@ -203,7 +194,6 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
                 <img src="/signature.png" alt="Signature" className="h-12 object-contain" />
               </div>
               <div className="w-48 border-b-2 border-slate-900 ml-auto mb-2"></div>
-              {/* <p className="font-black text-slate-900">{COMPANY_DEFAULTS.authorizedSignatory}</p> */}
               <p className="font-bold text-slate-400 uppercase tracking-widest">{COMPANY_DEFAULTS.designation}</p>
             </div>
           </div>

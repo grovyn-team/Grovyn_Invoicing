@@ -38,7 +38,6 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
     { id: 'audit', label: 'Audit Logs', icon: <ShieldCheck size={18} />, adminOnly: true },
   ];
 
-  // Helper to handle breadcrumb navigation
   const handleBreadcrumbClick = (target: string) => {
     if (target === 'core') setActiveTab('dashboard');
     else if (target === 'clients' && activeTab === 'client-details') setActiveTab('clients');
@@ -112,7 +111,6 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="flex flex-col min-w-0 fixed inset-y-0 left-0 lg:left-64 right-0 overflow-hidden">
         <header className="h-20 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 no-print z-30 flex-shrink-0">
           <div className="flex items-center gap-4">

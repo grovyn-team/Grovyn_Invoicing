@@ -14,7 +14,6 @@ const Analytics: React.FC = () => {
         setAnalyticsData(data);
       } catch (error) {
         console.error('Failed to fetch analytics:', error);
-        // Set default/empty data on error
         setAnalyticsData({
           monthlyRevenue: [],
           globalCoverage: { regions: 0, countries: [] },
@@ -51,12 +50,10 @@ const Analytics: React.FC = () => {
 
   const revenueData = analyticsData.monthlyRevenue;
   const maxRevenue = revenueData.length > 0 ? Math.max(...revenueData.map(d => d.revenue)) : 1;
-  
-  // Format growth percentage
+
   const growthPercentage = analyticsData.growthIndex.percentage;
   const growthDisplay = growthPercentage >= 0 ? `+${growthPercentage.toFixed(1)}%` : `${growthPercentage.toFixed(1)}%`;
-  
-  // Format global coverage countries
+
   const coverageCountries = analyticsData.globalCoverage.countries.length > 0
     ? analyticsData.globalCoverage.countries.slice(0, 3).join(', ')
     : 'No Data';

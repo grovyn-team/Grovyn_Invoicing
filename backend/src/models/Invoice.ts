@@ -152,13 +152,11 @@ const InvoiceSchema = new Schema<IInvoice>(
 
 InvoiceSchema.pre('save', function (next) {
   this.subtotal = this.items.reduce((sum, item) => sum + item.amount, 0);
-  
-  // Calculate discountTotal from discountPercentage if provided
+
   if (this.discountPercentage !== undefined && this.discountPercentage !== null) {
     this.discountTotal = this.subtotal * this.discountPercentage / 100;
   }
-  
-  // Use taxProtocol if available, otherwise fall back to isExportOfServices
+
   const taxProtocol = this.taxDetails.taxProtocol;
   const isExport = taxProtocol === 'EXPORT' || (taxProtocol === undefined && this.taxDetails.isExportOfServices);
   const isNoTax = taxProtocol === 'NONE';
@@ -169,7 +167,6 @@ InvoiceSchema.pre('save', function (next) {
     this.taxDetails.igst = 0;
     this.taxAmount = 0;
   } else {
-    // Calculate GST (taxProtocol === 'GST' or undefined/legacy)
     const subtotalAfterDiscount = this.subtotal - this.discountTotal;
     if (this.clientState === this.taxDetails.placeOfSupply || !this.taxDetails.placeOfSupply) {
       const gstRate = this.items[0]?.taxRate || 18;

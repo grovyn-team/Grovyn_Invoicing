@@ -32,7 +32,6 @@ const SystemConfiguration: React.FC<SystemConfigurationProps> = ({ isAdmin }) =>
         });
       } catch (error: any) {
         console.error('Failed to fetch company data:', error);
-        // Set defaults if fetch fails
         setFormData({
           name: 'GROVYN ENGINEERING PRIVATE LIMITED',
           gstin: '27AABCG1234F1Z1',

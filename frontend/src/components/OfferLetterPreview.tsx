@@ -9,12 +9,11 @@ interface OfferLetterPreviewProps {
 
 const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) => {
   const isInternship = offerLetter.employmentType === 'Internship';
+  const isConsultant = offerLetter.designation === 'Independent Sales Strategy Consultant';
   const isUnpaid = isInternship && (!offerLetter.salaryDetails.baseSalary || offerLetter.salaryDetails.baseSalary === 0);
-  const showCompensation = offerLetter.salaryDetails.baseSalary > 0 || isUnpaid;
-  // Section number offset: if compensation section is hidden, reduce all subsequent section numbers by 1
+  const showCompensation = !isConsultant && (offerLetter.salaryDetails.baseSalary > 0 || isUnpaid);
   const sectionOffset = showCompensation ? 0 : -1;
 
-  // Calculate end date (3 months for internship, or custom)
   const getEndDate = () => {
     const startDate = new Date(offerLetter.startDate);
     if (isInternship) {
@@ -63,7 +62,6 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
   return (
     <div className="w-full overflow-x-auto bg-white rounded-xl lg:bg-transparent lg:rounded-none print:overflow-visible print:m-0 print:p-0">
       <div className="bg-white p-6 md:p-12 shadow-2xl border border-slate-200 rounded-sm min-w-[700px] lg:min-w-0 w-full max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:pt-0 print:px-3 print:pb-0 print:w-full print:max-w-none text-slate-800" style={{ height: 'auto', minHeight: 'auto', paddingTop: 0, paddingBottom: 0 } as React.CSSProperties}>
-        {/* Header */}
         <div className="mb-8 mt-6 border-b-4 border-teal-500 pb-4 print:break-inside-avoid print:mt-0 print:pt-0 print:mb-4 print:pb-2">
           <table className="w-full border-collapse">
             <tbody>
@@ -104,20 +102,27 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           </table>
         </div>
 
-        {/* Recipient Information */}
         <div className="mb-8 print:break-inside-avoid">
           <p className="text-sm font-bold text-slate-900 mb-2">To,</p>
           <p className="text-sm font-bold text-slate-900 mb-1">{offerLetter.candidateName}</p>
           {offerLetter.candidateAddress && (
             <p className="text-sm text-slate-700">{offerLetter.candidateAddress}</p>
           )}
-          <p className="text-sm font-bold text-slate-900 mt-4 mb-2">Subject: {isInternship ? 'Offer of Internship' : 'Offer of Employment'} for {offerLetter.position} at G{COMPANY_DEFAULTS.name}</p>
+          <p className="text-sm font-bold text-slate-900 mt-4 mb-2">Subject: {isConsultant ? `Offer of Engagement as ${offerLetter.position} at G${COMPANY_DEFAULTS.name}` : `${isInternship ? 'Offer of Internship' : 'Offer of Employment'} for ${offerLetter.position} at G${COMPANY_DEFAULTS.name}`}</p>
         </div>
 
-        {/* Salutation */}
         <div className="mb-8 print:break-inside-avoid">
           <p className="text-sm font-bold text-slate-900 mb-2">Dear {offerLetter.candidateName.split(' ')[0]},</p>
-          {isInternship ? (
+          {isConsultant ? (
+            <>
+              <p className="text-sm leading-relaxed text-slate-700">
+                We are pleased to extend this offer of engagement to you for the position of Independent Sales Strategy Consultant at G{COMPANY_DEFAULTS.name}. After careful consideration of your qualifications and experience, we believe you would be a valuable addition to our team.
+              </p>
+              <p className="text-sm leading-relaxed text-slate-700 mt-2">
+                Please read this letter carefully, as it defines the complete understanding between you and G{COMPANY_DEFAULTS.name}.
+              </p>
+            </>
+          ) : isInternship ? (
             <p className="text-sm leading-relaxed text-slate-700">
               We are pleased to offer you an <span className="font-bold">Internship position</span> with <span className="font-bold">G{COMPANY_DEFAULTS.name}</span> for the role of <span className="font-bold">{offerLetter.position}</span>, subject to the terms and conditions outlined in this letter.
             </p>
@@ -127,20 +132,25 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
               After careful consideration of your qualifications and experience, we believe you would be a valuable addition to our team.
             </p>
           )}
-          {isInternship && (
+          {isInternship && !isConsultant && (
             <p className="text-sm leading-relaxed text-slate-700 mt-2">
               {offerLetter.internshipDescription || `This internship is designed to provide hands-on exposure to growth strategy, partnerships, outreach, and business development in a fast-moving remote-first environment, while allowing G${COMPANY_DEFAULTS.name} to evaluate your contribution and professional conduct.`}
             </p>
           )}
-          <p className="text-sm leading-relaxed text-slate-700 mt-2">
-            Please read this letter carefully, as it defines the complete understanding between you and G{COMPANY_DEFAULTS.name}.
-          </p>
+          {!isConsultant && (
+            <p className="text-sm leading-relaxed text-slate-700 mt-2">
+              Please read this letter carefully, as it defines the complete understanding between you and G{COMPANY_DEFAULTS.name}.
+            </p>
+          )}
         </div>
 
-        {/* Section 1: Nature of Engagement */}
         <div className="mb-8">
           <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">1. Nature of Engagement</h2>
-          {isInternship ? (
+          {isConsultant ? (
+            <p className="text-sm leading-relaxed text-slate-700">
+              This engagement is on an independent consultant basis and does not constitute employment, whether full-time, part-time, contractual, or otherwise. No employer-employee relationship is created under this engagement.
+            </p>
+          ) : isInternship ? (
             <div className="text-sm leading-relaxed text-slate-700 space-y-2">
               <p>
                 This engagement is strictly an <span className="font-bold">internship</span> and <span className="font-bold">does not constitute employment</span> under any labour, employment, or industrial law in India.
@@ -160,44 +170,59 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           )}
         </div>
 
-        {/* Section 2: Role and Responsibilities */}
         <div className="mb-8">
           <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">2. Role and Responsibilities</h2>
-          <p className="text-sm leading-relaxed text-slate-700 mb-2">
-            You are being onboarded as a <span className="font-bold">{offerLetter.designation}</span>.
-          </p>
-          {isInternship ? (
-            <div className="text-sm leading-relaxed text-slate-700">
-              <p className="mb-2">Your responsibilities may include but are not limited to:</p>
-              <ul className="list-disc list-inside ml-4 space-y-1">
-                {offerLetter.responsibilities && offerLetter.responsibilities.length > 0 ? (
-                  offerLetter.responsibilities.map((resp, index) => (
-                    <li key={index}>{resp}</li>
-                  ))
-                ) : (
-                  <>
-                    <li>Identifying potential partnerships and growth opportunities</li>
-                    <li>Outreach to founders, businesses, and decision-makers</li>
-                    <li>Assisting in onboarding deals, partnerships, or projects</li>
-                    <li>Supporting sales, partnerships, and growth initiatives</li>
-                  </>
-                )}
-              </ul>
-              <p className="mt-2">Your scope of work may be modified at G{COMPANY_DEFAULTS.name}'s discretion based on business needs.</p>
-            </div>
+          {isConsultant ? (
+            <>
+              <p className="text-sm leading-relaxed text-slate-700 mb-2">
+                You are being onboarded as a Independent Sales Strategy Consultant.
+              </p>
+              <p className="text-sm leading-relaxed text-slate-700">
+                Your responsibilities will be communicated by your reporting manager ({offerLetter.reportingManager || 'Aman K.A'}) and may evolve based on business requirements.
+              </p>
+            </>
           ) : (
-            <p className="text-sm leading-relaxed text-slate-700">
-              Your responsibilities will be communicated by your reporting manager {offerLetter.reportingManager ? `(${offerLetter.reportingManager})` : ''} and may evolve based on business requirements.
-            </p>
+            <>
+              <p className="text-sm leading-relaxed text-slate-700 mb-2">
+                You are being onboarded as a <span className="font-bold">{offerLetter.designation}</span>.
+              </p>
+              {isInternship ? (
+                <div className="text-sm leading-relaxed text-slate-700">
+                  <p className="mb-2">Your responsibilities may include but are not limited to:</p>
+                  <ul className="list-disc list-inside ml-4 space-y-1">
+                    {offerLetter.responsibilities && offerLetter.responsibilities.length > 0 ? (
+                      offerLetter.responsibilities.map((resp, index) => (
+                        <li key={index}>{resp}</li>
+                      ))
+                    ) : (
+                      <>
+                        <li>Identifying potential partnerships and growth opportunities</li>
+                        <li>Outreach to founders, businesses, and decision-makers</li>
+                        <li>Assisting in onboarding deals, partnerships, or projects</li>
+                        <li>Supporting sales, partnerships, and growth initiatives</li>
+                      </>
+                    )}
+                  </ul>
+                  <p className="mt-2">Your scope of work may be modified at G{COMPANY_DEFAULTS.name}'s discretion based on business needs.</p>
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed text-slate-700">
+                  Your responsibilities will be communicated by your reporting manager {offerLetter.reportingManager ? `(${offerLetter.reportingManager})` : ''} and may evolve based on business requirements.
+                </p>
+              )}
+            </>
           )}
         </div>
 
-        {/* Section 3: Duration */}
         <div className="mb-8">
           <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">
-            {isInternship ? '3. Internship Duration' : '3. Employment Duration'}
+            {isConsultant ? '3. Consulting Engagement Duration' : isInternship ? '3. Internship Duration' : '3. Employment Duration'}
           </h2>
-          {isInternship ? (
+          {isConsultant ? (
+            <p className="text-sm leading-relaxed text-slate-700">
+              This consulting engagement shall commence on {formatDateDDMonYYYY(offerLetter.startDate)} and shall continue until terminated in accordance with this letter.
+            </p>
+          ) : isInternship ? (
             <div className="text-sm leading-relaxed text-slate-700">
               <p>
                 The internship shall be for a <span className="font-bold">fixed period of three months</span>,
@@ -216,27 +241,35 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           )}
         </div>
 
-        {/* Section 4: Place of Work */}
         <div className="mb-8">
           <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">4. Place of Work</h2>
           <p className="text-sm leading-relaxed text-slate-700">
-            G{COMPANY_DEFAULTS.name} is a <span className="font-bold">remote-first company</span>.
+            G{COMPANY_DEFAULTS.name} is a remote-first company.
           </p>
           <p className="text-sm leading-relaxed text-slate-700 mt-2">
-            Your place of work shall be <span className="font-bold">fully remote</span>, and you will be expected to perform your duties from a location of your choice using your own infrastructure unless otherwise specified.
+            Your place of work shall be fully remote, and you will be expected to perform your duties from a location of your choice using your own infrastructure unless otherwise specified.
           </p>
         </div>
 
-        {/* Section 5: Working Commitment */}
         <div className="mb-8">
           <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">5. Working Commitment</h2>
-          <p className="text-sm leading-relaxed text-slate-700">
-            You are expected to devote sincere effort, professional conduct, and reasonable working hours toward assigned tasks.
-            However, this {isInternship ? 'internship' : 'position'} does not guarantee fixed working hours and may vary based on project needs.
-          </p>
+          {isConsultant ? (
+            <div className="text-sm leading-relaxed text-slate-700 space-y-2">
+              <p>
+                You are expected to devote sincere effort, professional conduct, and reasonable working hours toward assigned tasks. However, this position does not guarantee fixed working hours and may vary based on project needs.
+              </p>
+              <p>
+                This engagement is commission-only in nature. No salary, stipend, fixed remuneration, or statutory employment benefits shall be payable. Any commission, if applicable, shall be subject to successful client onboarding, payment realization, and written approval by G{COMPANY_DEFAULTS.name}.
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm leading-relaxed text-slate-700">
+              You are expected to devote sincere effort, professional conduct, and reasonable working hours toward assigned tasks.
+              However, this {isInternship ? 'internship' : 'position'} does not guarantee fixed working hours and may vary based on project needs.
+            </p>
+          )}
         </div>
 
-        {/* Section 6: Compensation - Only show if salary > 0 or unpaid internship */}
         {showCompensation && (
           <div className="mb-8">
             <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">
@@ -320,12 +353,9 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           </div>
         )}
 
-        {/* Continue with remaining sections... */}
-        {/* Section 7-15 will follow similar pattern */}
-        {/* Section 7: Performance and Conduct */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{7 + sectionOffset}. Performance and Conduct</h2>
-          <p className="text-sm leading-relaxed text-slate-700 mb-2">Your continuation in this {isInternship ? 'internship' : 'position'} is subject to:</p>
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '6' : 7 + sectionOffset}. Performance and Conduct</h2>
+          <p className="text-sm leading-relaxed text-slate-700 mb-2">Your continuation in this {isConsultant ? 'position' : isInternship ? 'internship' : 'position'} is subject to:</p>
           <ul className="list-disc list-inside ml-4 space-y-1 text-sm text-slate-700">
             <li>Satisfactory performance</li>
             <li>Professional behavior</li>
@@ -336,11 +366,10 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           </p>
         </div>
 
-        {/* Section 8: Confidentiality */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{8 + sectionOffset}. Confidentiality and Non-Disclosure</h2>
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '7' : 8 + sectionOffset}. Confidentiality and Non-Disclosure</h2>
           <p className="text-sm leading-relaxed text-slate-700 mb-2">
-            During and after the {isInternship ? 'internship' : 'employment'}, you shall maintain strict confidentiality regarding all non-public information related to G{COMPANY_DEFAULTS.name}, including but not limited to:
+            During and after the {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'}, you shall maintain strict confidentiality regarding all non-public information related to G{COMPANY_DEFAULTS.name}, including but not limited to:
           </p>
           <ul className="list-disc list-inside ml-4 space-y-1 text-sm text-slate-700">
             <li>Business strategies and plans</li>
@@ -353,34 +382,31 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
             You shall not disclose, copy, store, or share such information in any form without written authorization.
           </p>
           <p className="text-sm leading-relaxed text-slate-700 mt-2">
-            This obligation shall survive the completion or termination of this {isInternship ? 'internship' : 'employment'}.
+            This obligation shall survive the completion or termination of this {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'}.
           </p>
         </div>
 
-        {/* Section 9: Intellectual Property */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{9 + sectionOffset}. Intellectual Property Rights</h2>
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '8' : 9 + sectionOffset}. Intellectual Property Rights</h2>
           <p className="text-sm leading-relaxed text-slate-700">
-            All work, content, ideas, documents, leads, strategies, data, and materials created or contributed by you during this {isInternship ? 'internship' : 'employment'} shall be the <span className="font-bold">exclusive intellectual property of G{COMPANY_DEFAULTS.name}</span>.
+            All work, content, ideas, documents, leads, strategies, data, and materials created or contributed by you during this {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'} shall be the exclusive intellectual property of G{COMPANY_DEFAULTS.name}.
           </p>
           <p className="text-sm leading-relaxed text-slate-700 mt-2">
             You waive any ownership or moral rights over such work to the maximum extent permitted by Indian law.
           </p>
         </div>
 
-        {/* Section 10: Conflict of Interest */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{10 + sectionOffset}. Conflict of Interest</h2>
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '9' : 10 + sectionOffset}. Conflict of Interest</h2>
           <p className="text-sm leading-relaxed text-slate-700">
-            You shall not engage in any activity, {isInternship ? 'internship' : 'employment'}, or business that conflicts with G{COMPANY_DEFAULTS.name}'s interests during this {isInternship ? 'internship' : 'employment'} period without prior written consent.
+            You shall not engage in any activity, consulting engagement, or business that conflicts with G{COMPANY_DEFAULTS.name}'s interests during this {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'} period without prior written consent.
           </p>
         </div>
 
-        {/* Section 11: Misconduct */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{11 + sectionOffset}. Misconduct and Disciplinary Action</h2>
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '10' : 11 + sectionOffset}. Misconduct and Disciplinary Action</h2>
           <p className="text-sm leading-relaxed text-slate-700 mb-2">
-            G{COMPANY_DEFAULTS.name} reserves the right to terminate this {isInternship ? 'internship' : 'employment'} immediately in cases including but not limited to:
+            G{COMPANY_DEFAULTS.name} reserves the right to terminate this {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'} immediately in cases including but not limited to:
           </p>
           <ul className="list-disc list-inside ml-4 space-y-1 text-sm text-slate-700">
             <li>Breach of confidentiality</li>
@@ -394,10 +420,13 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           </p>
         </div>
 
-        {/* Section 12: Termination */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{12 + sectionOffset}. Termination and Notice Period</h2>
-          {isInternship ? (
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '11' : 12 + sectionOffset}. Termination and Notice Period</h2>
+          {isConsultant ? (
+            <p className="text-sm leading-relaxed text-slate-700">
+              Either party may terminate this consulting engagement by providing fifteen (15) days' written notice.
+            </p>
+          ) : isInternship ? (
             <div className="text-sm leading-relaxed text-slate-700">
               <p>
                 Either party may terminate this internship by providing <span className="font-bold">45 days' written notice</span>.
@@ -417,63 +446,60 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           )}
         </div>
 
-        {/* Section 13: Company Policies */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{13 + sectionOffset}. Company Policies and Rights</h2>
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '12' : 13 + sectionOffset}. Company Policies and Rights</h2>
           <p className="text-sm leading-relaxed text-slate-700 mb-2">
             You agree to comply with all current and future policies, guidelines, and instructions issued by G{COMPANY_DEFAULTS.name}.
           </p>
           <p className="text-sm leading-relaxed text-slate-700">
-            G{COMPANY_DEFAULTS.name} reserves the <span className="font-bold">absolute right to modify, amend, or change any terms, policies, incentive structures, or conditions</span> at any time without prior notice, subject to applicable law.
+            G{COMPANY_DEFAULTS.name} reserves the absolute right to modify, amend, or change any terms, policies, incentive structures, or conditions at any time without prior notice, subject to applicable law.
           </p>
         </div>
 
-        {/* Section 14: Governing Law */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{14 + sectionOffset}. Governing Law and Jurisdiction</h2>
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '13' : 14 + sectionOffset}. Governing Law and Jurisdiction</h2>
           <p className="text-sm leading-relaxed text-slate-700">
-            This letter shall be governed by the laws of India. Courts located in <span className="font-bold">Raipur, Chhattisgarh</span> shall have exclusive jurisdiction.
+            This letter shall be governed by the laws of India. Courts located in Raipur, Chhattisgarh shall have exclusive jurisdiction.
           </p>
         </div>
 
-        {/* Section 15: Terms & Conditions (Manually Entered) */}
-        {offerLetter.termsAndConditions && (
+        {(offerLetter.termsAndConditions || isConsultant) && (
           <div className="mb-8">
-            <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{15 + sectionOffset}. Terms & Conditions</h2>
+            <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '14' : 15 + sectionOffset}. Terms & Conditions</h2>
             <div className="text-sm leading-relaxed text-slate-700 whitespace-pre-line">
-              {offerLetter.termsAndConditions}
+              {isConsultant && !offerLetter.termsAndConditions
+                ? "This engagement is strictly on an independent consultant basis and does not constitute employment, partnership, or agency. The consultant shall not represent themselves as an employee of Grovyn. No salary, stipend, statutory benefits, or employment entitlements shall apply. The consultant shall be responsible for all applicable taxes and compliance obligations arising from commissions received."
+                : offerLetter.termsAndConditions}
             </div>
           </div>
         )}
 
-        {/* Section 16: Additional Notes */}
-        {offerLetter.additionalNotes && (
+        {(offerLetter.additionalNotes || isConsultant) && (
           <div className="mb-8">
-            <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{16 + sectionOffset}. Additional Notes</h2>
+            <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '15' : 16 + sectionOffset}. Additional Notes</h2>
             <div className="text-sm leading-relaxed text-slate-700 whitespace-pre-line">
-              {offerLetter.additionalNotes}
+              {isConsultant && !offerLetter.additionalNotes
+                ? "This role is designed for strategic contribution and client acquisition support. Continued engagement is subject to performance, conduct, and business requirements at Grovyn's discretion."
+                : offerLetter.additionalNotes}
             </div>
           </div>
         )}
 
-        {/* Section 17: Acceptance */}
         <div className="mb-8">
-          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{17 + sectionOffset}. Acceptance</h2>
+          <h2 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">{isConsultant ? '16' : 17 + sectionOffset}. Acceptance</h2>
           <p className="text-sm leading-relaxed text-slate-700">
             By signing below, you confirm that you have read, understood, and agreed to all the terms and conditions stated in this letter.
           </p>
           <p className="text-sm leading-relaxed text-slate-700 mt-2">
-            We look forward to your contribution and wish you a {isInternship ? 'meaningful learning experience' : 'successful journey'} with G{COMPANY_DEFAULTS.name}.
+            We look forward to your contribution and wish you a successful journey with G{COMPANY_DEFAULTS.name}.
           </p>
         </div>
 
-        {/* Closing */}
         <div className="mb-12">
           <p className="text-sm font-bold text-slate-900 mb-2">Warm regards,</p>
           <p className="text-sm text-slate-700 mb-4">For G{COMPANY_DEFAULTS.name}</p>
         </div>
 
-        {/* Signature Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-slate-100 mb-8">
           <div className="space-y-4">
             <section>
@@ -489,7 +515,6 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
                 Authorized Signatory
               </p>
 
-              {/* Signature */}
               <div className="w-[120px] h-[40px] mb-1 ml-auto overflow-hidden">
                 <img
                   src="/signature.png"
@@ -498,7 +523,6 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
                 />
               </div>
 
-              {/* Line */}
               <div className="w-48 border-b-2 border-slate-900 ml-auto mb-2"></div>
 
               <p className="font-bold text-slate-900 text-sm">Aman K.A</p>
@@ -509,13 +533,12 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           </div>
         </div>
 
-        {/* Candidate Acceptance Section */}
         <div className="mb-12">
           <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-4">
-            {isInternship ? 'Intern' : 'Candidate'} Acceptance
+            {isConsultant ? 'CANDIDATE ACCEPTANCE' : isInternship ? 'Intern' : 'Candidate'} Acceptance
           </h3>
           <p className="text-sm leading-relaxed text-slate-700 mb-4">
-            I, <span className="font-bold">{offerLetter.candidateName}</span>, accept this {isInternship ? 'internship' : 'employment'} offer and agree to all terms and conditions stated above.
+            I, <span className="font-bold">{offerLetter.candidateName}</span>, accept this {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'} {isConsultant ? '' : 'offer '}and agree to all terms and conditions stated above.
           </p>
           <div className="mt-8 space-y-4">
             <div>
@@ -529,12 +552,10 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
           </div>
         </div>
 
-        {/* Legal Footer */}
         <div className="mb-8">
           <LegalFooter />
         </div>
 
-        {/* ANNEXURE A - Non-Disclosure Agreement */}
         <div className="mt-12 pt-12 border-t-4 border-slate-900">
           <h1 className="text-2xl font-black text-slate-900 mb-8 uppercase tracking-tight">ANNEXURE A</h1>
           <h2 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight">NON-DISCLOSURE AND CONFIDENTIALITY AGREEMENT</h2>
@@ -552,16 +573,15 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
             <p className="text-sm font-bold text-slate-900 mt-4">AND</p>
             <p className="text-sm leading-relaxed text-slate-700">
               <span className="font-bold">{offerLetter.candidateName}</span>, {offerLetter.candidateAddress || 'residing at [Address]'}
-              <br />(hereinafter referred to as "{isInternship ? 'Intern' : 'Employee'}")
+              <br />(hereinafter referred to as "{isConsultant ? 'Consultant' : isInternship ? 'Intern' : 'Employee'}")
             </p>
           </div>
 
-          {/* Annexure Sections */}
           <div className="space-y-8">
             <div>
               <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">1. Purpose</h3>
               <p className="text-sm leading-relaxed text-slate-700">
-                The {isInternship ? 'Intern' : 'Employee'} agrees to receive certain confidential, proprietary, and sensitive information solely for the purpose of performing duties related to the {isInternship ? 'internship' : 'employment'} with G{COMPANY_DEFAULTS.name}.
+                The {isConsultant ? 'Consultant' : isInternship ? 'Intern' : 'Employee'} agrees to receive certain confidential, proprietary, and sensitive information solely for the purpose of performing duties related to the {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'} with G{COMPANY_DEFAULTS.name}.
               </p>
             </div>
 
@@ -581,13 +601,13 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
             </div>
 
             <div>
-              <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">3. Obligations of the {isInternship ? 'Intern' : 'Employee'}</h3>
-              <p className="text-sm leading-relaxed text-slate-700 mb-2">The {isInternship ? 'Intern' : 'Employee'} agrees that they shall:</p>
+              <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">3. Obligations of the {isConsultant ? 'Consultant' : isInternship ? 'Intern' : 'Employee'}</h3>
+              <p className="text-sm leading-relaxed text-slate-700 mb-2">The {isConsultant ? 'Consultant' : isInternship ? 'Intern' : 'Employee'} agrees that they shall:</p>
               <ul className="list-disc list-inside ml-4 space-y-1 text-sm text-slate-700">
                 <li>Keep all Confidential Information strictly confidential</li>
                 <li>Not disclose such information to any third party</li>
                 <li>Not use Confidential Information for personal or external benefit</li>
-                <li>Not copy, store, or retain Confidential Information beyond {isInternship ? 'internship' : 'employment'} needs</li>
+                <li>Not copy, store, or retain Confidential Information beyond {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'} needs</li>
                 <li>Take reasonable measures to protect such information</li>
               </ul>
             </div>
@@ -605,21 +625,21 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
             <div>
               <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">5. Intellectual Property</h3>
               <p className="text-sm leading-relaxed text-slate-700">
-                All work, data, materials, leads, documentation, strategies, or outputs created or accessed during the {isInternship ? 'internship' : 'employment'} remain the <span className="font-bold">exclusive property of G{COMPANY_DEFAULTS.name}</span>.
+                All work, data, materials, leads, documentation, strategies, or outputs created or accessed during the course of this {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'} remain the <span className="font-bold">exclusive property of G{COMPANY_DEFAULTS.name}</span>.
               </p>
-              <p className="text-sm leading-relaxed text-slate-700 mt-2">No license or ownership rights are granted to the {isInternship ? 'Intern' : 'Employee'}.</p>
+              <p className="text-sm leading-relaxed text-slate-700 mt-2">No license or ownership rights are granted to the {isConsultant ? 'Consultant' : isInternship ? 'Intern' : 'Employee'}.</p>
             </div>
 
             <div>
               <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">6. Non-Solicitation</h3>
               <p className="text-sm leading-relaxed text-slate-700">
-                During the {isInternship ? 'internship' : 'employment'} and for a reasonable period thereafter as permitted by law, the {isInternship ? 'Intern' : 'Employee'} shall not solicit G{COMPANY_DEFAULTS.name}'s clients, partners, vendors, or employees for competing or personal purposes.
+                During the {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'} and for a reasonable period thereafter as permitted by law, the {isConsultant ? 'Consultant' : isInternship ? 'Intern' : 'Employee'} shall not solicit G{COMPANY_DEFAULTS.name}'s clients, partners, vendors, or {isConsultant ? 'Consultant' : 'employees'} for competing or personal purposes.
               </p>
             </div>
 
             <div>
               <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">7. Data Protection and Security</h3>
-              <p className="text-sm leading-relaxed text-slate-700 mb-2">The {isInternship ? 'Intern' : 'Employee'} agrees to:</p>
+              <p className="text-sm leading-relaxed text-slate-700 mb-2">The {isConsultant ? 'Consultant' : isInternship ? 'Intern' : 'Employee'} agrees to:</p>
               <ul className="list-disc list-inside ml-4 space-y-1 text-sm text-slate-700">
                 <li>Use only authorized devices and tools</li>
                 <li>Not share login credentials</li>
@@ -630,14 +650,14 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
             <div>
               <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">8. Term and Survival</h3>
               <p className="text-sm leading-relaxed text-slate-700">
-                This Agreement shall remain effective <span className="font-bold">during the {isInternship ? 'internship' : 'employment'} and indefinitely thereafter</span>, regardless of the manner of termination.
+                This Agreement shall remain effective <span className="font-bold">during the {isConsultant ? 'consulting engagement' : isInternship ? 'internship' : 'employment'} and indefinitely thereafter</span>, regardless of the manner of termination.
               </p>
             </div>
 
             <div>
               <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-2">9. Breach and Remedies</h3>
               <p className="text-sm leading-relaxed text-slate-700 mb-2">
-                The {isInternship ? 'Intern' : 'Employee'} acknowledges that any breach may cause irreparable harm to the Company.
+                The {isConsultant ? 'Consultant' : isInternship ? 'Intern' : 'Employee'} acknowledges that any breach may cause irreparable harm to the Company.
               </p>
               <p className="text-sm leading-relaxed text-slate-700 mb-2">G{COMPANY_DEFAULTS.name} shall be entitled to:</p>
               <ul className="list-disc list-inside ml-4 space-y-1 text-sm text-slate-700">
@@ -670,7 +690,6 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
             </div>
           </div>
 
-          {/* Annexure Signature Section */}
           <div className="mt-12 pt-8 border-t border-slate-200">
             <h3 className="text-base font-black text-slate-900 uppercase tracking-tight mb-6">Signatures</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
@@ -685,7 +704,7 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
                 <p className="text-xs text-slate-600 mt-4">Date: {new Date().toLocaleDateString()}</p>
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-900 mb-4">{isInternship ? 'Intern' : 'Employee'}</p>
+                <p className="text-sm font-bold text-slate-900 mb-4">{isConsultant ? 'Consultant' : isInternship ? 'Intern' : 'Employee'}</p>
                 <div className="w-48 border-b-2 border-slate-900 mb-2"></div>
                 <p className="font-bold text-slate-900 text-sm">{offerLetter.candidateName}</p>
                 <p className="text-xs text-slate-600 mt-4">Date: __________________</p>
@@ -693,7 +712,6 @@ const OfferLetterPreview: React.FC<OfferLetterPreviewProps> = ({ offerLetter }) 
             </div>
           </div>
 
-          {/* Legal Footer at end of Annexure */}
           <div className="mt-8">
             <LegalFooter />
           </div>

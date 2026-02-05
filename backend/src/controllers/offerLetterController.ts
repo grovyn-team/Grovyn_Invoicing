@@ -25,7 +25,6 @@ export const createOfferLetter = async (req: AuthRequest, res: Response): Promis
       offerData.createdBy = req.user._id;
     }
 
-    // Convert date strings to Date objects
     if (offerData.offerDate) {
       offerData.offerDate = new Date(offerData.offerDate);
     }
@@ -114,7 +113,6 @@ export const updateOfferLetter = async (req: Request, res: Response): Promise<vo
       return;
     }
 
-    // Convert date strings to Date objects
     if (req.body.offerDate) {
       offerLetter.offerDate = new Date(req.body.offerDate);
     }

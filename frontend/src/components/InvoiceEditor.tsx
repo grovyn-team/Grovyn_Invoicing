@@ -36,19 +36,16 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
     createdBy: 'Admin'
   });
 
-  // Update invoice when initialInvoice changes
   useEffect(() => {
     if (initialInvoice) {
       setInvoice(initialInvoice);
-      setAiFilledFields(new Set()); // Reset AI fields when editing existing invoice
+      setAiFilledFields(new Set());
     }
   }, [initialInvoice]);
 
-  // Handle AI draft generation
   const handleAIDraftGenerated = (draft: any) => {
     const filledFields = new Set<string>();
 
-    // Map AI draft to invoice structure
     const updatedInvoice: Invoice = {
       ...invoice,
       type: draft.invoiceType as InvoiceType,
@@ -77,7 +74,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
       notes: draft.notes || invoice.notes,
     };
 
-    // Track which fields were filled by AI
     if (draft.invoiceType) filledFields.add('type');
     if (draft.invoiceDate) filledFields.add('issueDate');
     if (draft.dueDate) filledFields.add('dueDate');
@@ -96,7 +92,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
     toast.success('Invoice form auto-filled with AI suggestions. Please review and adjust as needed.');
   };
 
-  // Get current client for AI modal
   const currentClient = invoice.client?.id
     ? clients.find(c => c.id === invoice.client.id) || clients[0]
     : clients[0];
@@ -140,15 +135,12 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
       if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
         await navigator.share(shareData);
       } else {
-        // Fallback: Copy to clipboard
         const textToCopy = `Invoice ${invoice.invoiceNumber}\nClient: ${invoice.client.companyName || invoice.client.name}\nTotal: ${invoice.currency} ${invoice.items.reduce((acc, i) => acc + i.total, 0).toLocaleString()}\n${window.location.href}`;
         await navigator.clipboard.writeText(textToCopy);
         toast.success('Invoice details copied to clipboard!');
       }
     } catch (error: any) {
-      // User cancelled share or error occurred
       if (error.name !== 'AbortError') {
-        // Fallback: Copy to clipboard
         try {
           const textToCopy = `Invoice ${invoice.invoiceNumber}\nClient: ${invoice.client.companyName || invoice.client.name}\nTotal: ${invoice.currency} ${invoice.items.reduce((acc, i) => acc + i.total, 0).toLocaleString()}\n${window.location.href}`;
           await navigator.clipboard.writeText(textToCopy);
@@ -163,7 +155,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
 
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div className="flex items-center gap-4">
           <button onClick={onCancel} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 transition-all">
@@ -204,7 +195,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
       </div>
 
       <div className={`grid ${showPreview ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-12'} gap-6 md:gap-8`}>
-        {/* Main Editor */}
         <div className={`${showPreview ? 'hidden' : 'lg:col-span-8'} space-y-6 no-print`}>
           <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
@@ -221,7 +211,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
                   onChange={e => {
                     const client = clients.find(c => c.id === e.target.value);
                     if (client) {
-                      // Update client and currency, ensuring projectTitle comes from client
                       setInvoice({
                         ...invoice,
                         client: { ...client, projectTitle: client.projectTitle },
@@ -499,7 +488,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
           </section>
         </div>
 
-        {/* Sidebar Controls */}
         <div className={`${showPreview ? 'hidden' : 'lg:col-span-4'} space-y-6 no-print`}>
           <section className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 className="text-xs font-black text-slate-900 tracking-tight uppercase mb-6">Metadata</h3>
@@ -582,7 +570,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
           </section>
         </div>
 
-        {/* Full Page Preview */}
         {showPreview && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
             <div className="flex flex-col sm:flex-row justify-center mb-8 no-print gap-4">
@@ -603,7 +590,6 @@ const InvoiceEditor: React.FC<InvoiceEditorProps> = ({ initialInvoice, onSave, o
         )}
       </div>
 
-      {/* AI Generate Modal */}
       {currentClient && (
         <AIGenerateModal
           isOpen={showAIModal}

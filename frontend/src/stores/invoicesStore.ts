@@ -17,7 +17,6 @@ interface InvoicesState {
   saveInvoice: (invoice: Invoice, clients: Client[]) => Promise<Invoice>;
 }
 
-// Transform backend invoice status to frontend status
 const transformStatus = (backendStatus: string): InvoiceStatus => {
   const statusMap: Record<string, InvoiceStatus> = {
     'draft': InvoiceStatus.DRAFT,
@@ -30,18 +29,15 @@ const transformStatus = (backendStatus: string): InvoiceStatus => {
   return statusMap[backendStatus.toLowerCase()] || InvoiceStatus.DRAFT;
 };
 
-// Transform backend invoice type to frontend type
 const transformType = (backendType: string): InvoiceType => {
-  // Map backend invoice types to frontend enum values
   if (backendType === 'Tax Invoice') return InvoiceType.TAX;
   if (backendType === 'Standard Invoice') return InvoiceType.STANDARD;
   if (backendType === 'Proforma Invoice') return InvoiceType.PROFORMA;
   if (backendType === 'Credit Note') return InvoiceType.CREDIT_NOTE;
   if (backendType === 'Debit Note') return InvoiceType.DEBIT_NOTE;
-  return InvoiceType.TAX; // default
+  return InvoiceType.TAX;
 };
 
-// Transform backend invoice item to frontend LineItem
 const transformLineItem = (backendItem: any, index: number): LineItem => {
   return {
     id: backendItem._id?.toString() || index.toString(),
@@ -55,13 +51,10 @@ const transformLineItem = (backendItem: any, index: number): LineItem => {
   };
 };
 
-// Transform backend invoice to frontend Invoice
 const transformBackendInvoice = (backendInvoice: any, clients: Client[]): Invoice => {
-  // Find the client object from the clients array
   const clientId = backendInvoice.clientId?._id || backendInvoice.clientId || backendInvoice.clientId?.toString();
   const client = clients.find(c => c.id === clientId || c.id === backendInvoice.clientId?.toString());
 
-  // If client is populated, use it; otherwise construct from invoice fields
   const clientObj: Client = client || {
     id: clientId || '',
     name: backendInvoice.clientName || '',
@@ -82,7 +75,6 @@ const transformBackendInvoice = (backendInvoice: any, clients: Client[]): Invoic
     totalSpent: 0,
   };
 
-  // Determine tax type from taxDetails (prefer taxProtocol if available)
   let taxType: 'GST' | 'EXPORT' | 'NONE' = 'GST';
   if (backendInvoice.taxDetails?.taxProtocol) {
     taxType = backendInvoice.taxDetails.taxProtocol as 'GST' | 'EXPORT' | 'NONE';
@@ -146,7 +138,6 @@ export const useInvoicesStore = create<InvoicesState>((set, get) => ({
         throw new Error('Client not found');
       }
 
-      // Transform frontend invoice to backend format
       const backendData: any = {
         invoiceType: invoice.type,
         invoiceDate: invoice.issueDate,
@@ -193,17 +184,13 @@ export const useInvoicesStore = create<InvoicesState>((set, get) => ({
 
       let savedInvoice;
       if (invoice.id && invoice.id.length > 10) {
-        // Update existing invoice
         savedInvoice = await invoiceAPI.update(invoice.id, backendData);
       } else {
-        // Create new invoice
         savedInvoice = await invoiceAPI.create(backendData);
       }
 
-      // Transform saved invoice back to frontend format
       const transformedInvoice = transformBackendInvoice(savedInvoice, clients);
 
-      // Update store
       if (invoice.id && invoice.id.length > 10) {
         get().updateInvoice(transformedInvoice.id, transformedInvoice);
       } else {

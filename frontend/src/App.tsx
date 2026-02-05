@@ -70,32 +70,28 @@ const App: React.FC = () => {
   useEffect(() => {
     checkAuth();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, []);
 
   const clientsLoading = useClientsStore((state) => state.loading);
 
-  // Fetch clients when user is available
   useEffect(() => {
     if (user && clients.length === 0 && !clientsLoading) {
       fetchClients();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, clients.length, clientsLoading]); // Depend on user, clients.length, and loading state
+  }, [user, clients.length, clientsLoading]);
 
-  // Reset fetch flag when user changes
   useEffect(() => {
     if (!user) {
       setHasFetchedData(false);
     }
   }, [user]);
 
-  // Fetch invoices and quotations once clients are loaded
   useEffect(() => {
     if (user && clients.length > 0 && !hasFetchedData) {
       const invoicesLoading = useInvoicesStore.getState().loading;
       const quotationsLoading = useQuotationsStore.getState().loading;
 
-      // Only fetch if not already loading and data is empty
       if (!invoicesLoading && invoices.length === 0) {
         fetchInvoices(clients);
       }
@@ -112,7 +108,7 @@ const App: React.FC = () => {
       setHasFetchedData(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, clients.length, hasFetchedData, offerLetters.length]); // Only re-fetch if clients.length changes from 0 to >0
+  }, [user, clients.length, hasFetchedData, offerLetters.length]);
 
   const handleLogin = (userData: Parameters<typeof login>[0]) => {
     login(userData);
@@ -134,13 +130,10 @@ const App: React.FC = () => {
       useAppStore.getState().setActiveTab('invoices');
       useAppStore.getState().setEditingInvoice(null);
       useAppStore.getState().setIsCreating(false);
-      // Refresh invoices list
       await fetchInvoices(clients);
-      // Show success toast
       useToastStore.getState().success('Invoice saved successfully!');
     } catch (error: any) {
       console.error('Failed to save invoice:', error);
-      // Show error toast
       useToastStore.getState().error(error.message || 'Failed to save invoice. Please try again.');
     }
   };
@@ -214,9 +207,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Proposal handlers
-  // Using startNewProposal and startEditProposal from store directly
-
   const handleEditProposal = (proposal: Proposal) => {
     startEditProposal(proposal.id);
     setActiveTab('proposals');
@@ -236,12 +226,10 @@ const App: React.FC = () => {
     }
   };
 
-  // Get the selected client object
   const selectedClient = selectedClientId
     ? clients.find((c) => c.id === selectedClientId)
     : null;
 
-  // Search logic
   const filteredInvoices = invoices.filter(
     (inv) =>
       inv.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||

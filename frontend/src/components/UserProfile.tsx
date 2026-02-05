@@ -21,13 +21,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onClose, onUpdate }) =>
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  // Profile form state
   const [profileData, setProfileData] = useState({
     name: user.name,
     email: user.email,
   });
 
-  // Password form state
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
@@ -138,7 +136,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onClose, onUpdate }) =>
         className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between z-10">
           <h2 className="text-xl font-black text-slate-900 tracking-tight">User Profile</h2>
           <button
@@ -149,7 +146,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onClose, onUpdate }) =>
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="border-b border-slate-200 px-6 flex gap-4">
           <button
             onClick={() => setActiveTab('profile')}
@@ -173,7 +169,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onClose, onUpdate }) =>
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6">
           {error && (
             <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-600 text-sm font-medium">
@@ -189,7 +184,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onClose, onUpdate }) =>
 
           {activeTab === 'profile' && (
             <div className="space-y-6">
-              {/* Avatar Upload */}
               <div className="flex items-center gap-6">
                 <div className="relative">
                   <div className="w-24 h-24 rounded-2xl bg-teal-50 overflow-hidden border-2 border-teal-100">
@@ -217,7 +211,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ user, onClose, onUpdate }) =>
                 </div>
               </div>
 
-              {/* Profile Form */}
               <form onSubmit={handleProfileUpdate} className="space-y-6">
                 <div>
                   <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">

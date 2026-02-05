@@ -135,10 +135,8 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
 
             <div className={`grid ${showPreview ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-12'} gap-8`}>
                 <div className={`${showPreview ? 'hidden' : 'lg:col-span-8'} space-y-8`}>
-                    {/* Document Content - Google Docs Feel */}
                     <div className="bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden min-h-[800px] flex flex-col">
                         <div className="p-10 md:p-16 flex-1 space-y-12">
-                            {/* Header Info */}
                             <div className="border-b border-slate-100 pb-8 grid grid-cols-2 gap-8">
                                 <div className="space-y-4">
                                     <div className="flex items-center justify-between">
@@ -212,7 +210,6 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                                 </div>
                             </div>
 
-                            {/* Problem Statement */}
                             <section className="space-y-4 group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -231,7 +228,6 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                                 />
                             </section>
 
-                            {/* Solution */}
                             <section className="space-y-4 group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -250,7 +246,6 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                                 />
                             </section>
 
-                            {/* Scope */}
                             <section className="space-y-4 group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
@@ -269,7 +264,6 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                                 />
                             </section>
 
-                            {/* Deliverables */}
                             <section className="space-y-4 group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -288,7 +282,6 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                                 />
                             </section>
 
-                            {/* Timeline & Exclusions */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-slate-100">
                                 <section className="space-y-4">
                                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
@@ -322,7 +315,6 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                                 </section>
                             </div>
 
-                            {/* Next Steps */}
                             <section className="space-y-4 pt-8 border-t border-slate-100">
                                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
                                     <HelpCircle size={18} className="text-teal-500" />
@@ -343,7 +335,6 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                 </div>
 
                 <div className={`${showPreview ? 'hidden' : 'lg:col-span-4'} space-y-6`}>
-                    {/* Guidelines Card */}
                     <section className="bg-slate-900 p-8 rounded-xl text-white shadow-2xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/20 rounded-full -mr-16 -mt-16 blur-3xl"></div>
                         <h3 className="text-xs font-black uppercase tracking-widest text-primary-400 mb-6">Execution Strategy</h3>

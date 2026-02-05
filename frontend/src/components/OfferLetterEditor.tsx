@@ -86,7 +86,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
 
       <div className={`grid ${showPreview ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-12'} gap-6 md:gap-8`}>
         <div className={`${showPreview ? 'hidden' : 'lg:col-span-8'} space-y-6 no-print`}>
-          {/* Candidate Information */}
           <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">01</span>
@@ -145,7 +144,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
             </div>
           </section>
 
-          {/* Position Details */}
           <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -166,6 +164,10 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
                         designation: template.designation,
                         department: template.department,
                         reportingManager: template.reportingManager ?? offerLetter.reportingManager,
+                        noticePeriod: template.noticePeriod ?? offerLetter.noticePeriod,
+                        workLocation: template.workLocation ?? offerLetter.workLocation,
+                        termsAndConditions: template.termsAndConditions ?? offerLetter.termsAndConditions,
+                        additionalNotes: template.additionalNotes ?? offerLetter.additionalNotes,
                         responsibilities: [...template.responsibilities],
                         internshipDescription: template.internshipDescription,
                         incentiveTerms: template.incentiveTerms ? [...template.incentiveTerms] : []
@@ -228,7 +230,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
               </div>
             </div>
 
-            {/* Dynamic Responsibilities */}
             <div className="mt-8 pt-8 border-t border-slate-100">
               <div className="flex items-center justify-between mb-4">
                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Core Responsibilities</label>
@@ -275,7 +276,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
               </div>
             </div>
 
-            {/* Role-specific Internship Description */}
             {offerLetter.employmentType === 'Internship' && (
               <div className="mt-6">
                 <label className="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Internship Description (Role Specific)</label>
@@ -289,7 +289,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
             )}
           </section>
 
-          {/* Employment Details */}
           <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">03</span>
@@ -366,7 +365,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
             </div>
           </section>
 
-          {/* Salary Details */}
           <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">04</span>
@@ -444,7 +442,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
               </div>
             </div>
 
-            {/* Dynamic Incentive Terms */}
             <div className="mt-8 pt-8 border-t border-slate-100">
               <div className="flex items-center justify-between mb-4">
                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Incentive Terms & Conditions</label>
@@ -492,7 +489,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
             </div>
           </section>
 
-          {/* Terms & Conditions */}
           <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
               <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">05</span>
@@ -564,7 +560,6 @@ const OfferLetterEditor: React.FC<OfferLetterEditorProps> = ({ initialOfferLette
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 print:pb-0 print:mb-0">
             <div className="flex flex-col sm:flex-row justify-center mb-8 no-print gap-4 print:mb-0">
               <button onClick={() => {
-                // Force browser to recalculate full document height
                 window.scrollTo(0, document.body.scrollHeight);
                 setTimeout(() => window.print(), 100);
               }} className="flex items-center justify-center gap-2 px-8 py-4 bg-teal-500 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-teal-600 shadow-xl shadow-teal-500/20 transition-all active:scale-95">

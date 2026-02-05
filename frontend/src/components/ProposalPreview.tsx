@@ -24,7 +24,6 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
         <div className="w-full overflow-x-auto bg-slate-50 p-4 md:p-8 lg:bg-transparent lg:p-0 print:overflow-visible print:m-0 print:p-0">
             <div className="bg-white p-6 md:p-12 shadow-2xl border border-slate-100 min-w-[800px] lg:min-w-0 w-full max-w-4xl mx-auto print:shadow-none print:border-none print:m-0 print:p-0 print:w-full print:max-w-none text-slate-800 font-serif" style={{ height: 'auto', minHeight: 'auto' } as React.CSSProperties}>
 
-                {/* Header - Branded Table-based for Print Stability */}
                 <div className="mb-12 space-y-8 print:mb-6">
                     <table className="w-full border-collapse border-b-8 border-teal-500 pb-12 print:pb-6">
                         <tbody>
@@ -40,7 +39,6 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                                         </div>
                                         <div>
                                             <h1 className="text-3xl font-black tracking-tighter text-slate-900 leading-none ml-[-20px]">rovyn</h1>
-                                            {/* <p className="text-[10px] font-black uppercase tracking-[0.3em] text-teal-500 mt-1">Design & Strategy</p> */}
                                         </div>
                                     </div>
                                     <div className="mt-10 space-y-1">
@@ -67,7 +65,6 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                     </table>
                 </div>
 
-                {/* Project Title */}
                 <div className="mb-12 print:mb-8 print:break-inside-avoid">
                     <h2 className="text-5xl md:text-6xl font-black tracking-tighter text-slate-900 leading-[1.1] mb-4">
                         {proposal.projectName || 'Project Architectural Proposal'}
@@ -75,9 +72,7 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                     <div className="w-32 h-2 bg-teal-500"></div>
                 </div>
 
-                {/* Content Sections */}
                 <div className="space-y-12 print:space-y-8">
-                    {/* Section 1: Problem */}
                     <section className="print:break-inside-avoid page-break-inside-avoid mb-12">
                         <div className="flex items-center gap-4 mb-8">
                             <span className="text-4xl font-black text-slate-300 leading-none">01</span>
@@ -88,7 +83,6 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                         </div>
                     </section>
 
-                    {/* Section 2: Solution */}
                     <section className="print:break-inside-avoid page-break-inside-avoid mb-12">
                         <div className="flex items-center gap-4 mb-6">
                             <span className="text-4xl font-black text-slate-300 leading-none">02</span>
@@ -99,7 +93,6 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                         </div>
                     </section>
 
-                    {/* Section 3: Scope */}
                     <section className="print:break-inside-avoid page-break-inside-avoid mb-12">
                         <div className="flex items-center gap-4 mb-6">
                             <span className="text-4xl font-black text-slate-300 leading-none">03</span>
@@ -110,7 +103,6 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                         </div>
                     </section>
 
-                    {/* Section 4: Deliverables */}
                     <section className="print:break-inside-avoid page-break-inside-avoid mb-12">
                         <div className="flex items-center gap-4 mb-6">
                             <span className="text-4xl font-black text-slate-300 leading-none">04</span>
@@ -121,7 +113,6 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                         </div>
                     </section>
 
-                    {/* Timeline and Exclusions Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-12 border-t-2 border-slate-100 print:page-break-inside-avoid">
                         <section className="print:break-inside-avoid">
                             <h4 className="text-sm font-black text-teal-600 uppercase tracking-[0.2em] mb-4">Estimated Timeline</h4>
@@ -137,7 +128,6 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                         </section>
                     </div>
 
-                    {/* Next Steps */}
                     {proposal.nextSteps && (
                         <section className="print:break-inside-avoid page-break-inside-avoid bg-slate-900 text-white p-12 rounded-2xl relative overflow-hidden">
                             <div className="absolute bottom-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full -mb-32 -mr-32 blur-3xl"></div>
@@ -151,7 +141,6 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="mt-32 pt-12 border-t-2 border-slate-100 print:mt-12 print:pt-8">
                     <div className="grid grid-cols-2 gap-12">
                         <div>

@@ -53,7 +53,6 @@ const ClientOnboarding: React.FC<ClientOnboardingProps> = ({ onSave, onCancel })
     setError(null);
 
     try {
-      // Transform to backend format
       const backendData = {
         name: formData.name,
         companyName: formData.companyName || undefined,
@@ -73,7 +72,6 @@ const ClientOnboarding: React.FC<ClientOnboardingProps> = ({ onSave, onCancel })
 
       const createdClient: any = await clientAPI.create(backendData);
 
-      // Transform backend response to frontend format
       const frontendClient: Client = {
         id: createdClient.id || createdClient._id || '',
         name: createdClient.name,
@@ -109,7 +107,6 @@ const ClientOnboarding: React.FC<ClientOnboardingProps> = ({ onSave, onCancel })
 
   return (
     <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-20">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div className="flex items-center gap-4">
           <button onClick={onCancel} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 transition-all">
@@ -139,7 +136,6 @@ const ClientOnboarding: React.FC<ClientOnboardingProps> = ({ onSave, onCancel })
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Information */}
         <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
             <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">01</span>
@@ -218,7 +214,6 @@ const ClientOnboarding: React.FC<ClientOnboardingProps> = ({ onSave, onCancel })
           </div>
         </section>
 
-        {/* Address Information */}
         <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
             <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">02</span>
@@ -299,7 +294,6 @@ const ClientOnboarding: React.FC<ClientOnboardingProps> = ({ onSave, onCancel })
           </div>
         </section>
 
-        {/* Financial Information */}
         <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
             <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">03</span>
@@ -354,7 +348,6 @@ const ClientOnboarding: React.FC<ClientOnboardingProps> = ({ onSave, onCancel })
           </div>
         </section>
 
-        {/* Additional Notes */}
         <section className="bg-white p-5 md:p-8 rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="text-[10px] md:text-xs font-black text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
             <span className="w-5 h-5 bg-teal-500 text-white rounded flex items-center justify-center text-[9px]">04</span>
@@ -376,7 +369,6 @@ const ClientOnboarding: React.FC<ClientOnboardingProps> = ({ onSave, onCancel })
           </div>
         </section>
 
-        {/* Submit Button (Mobile) */}
         <div className="sm:hidden pb-6">
           <button
             type="submit"

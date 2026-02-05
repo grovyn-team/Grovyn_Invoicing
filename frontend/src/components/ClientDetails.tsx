@@ -19,7 +19,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Parse address into components for editing
   const parseAddress = (address: string) => {
     const parts = address.split(',').map(p => p.trim());
     return {
@@ -81,7 +80,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
     setError(null);
 
     try {
-      // Transform to backend format
       const backendData: any = {
         name: formData.name,
         companyName: formData.companyName || undefined,
@@ -101,7 +99,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
 
       const updatedClient = await clientAPI.update(client.id || '', backendData as any);
 
-      // Transform backend response to frontend format
       const frontendClient: Client = {
         id: updatedClient.id || updatedClient._id || client.id,
         name: updatedClient.name,
@@ -120,7 +117,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
         totalSpent: client.totalSpent,
       };
 
-      // Update the client in the store
       updateClient(client.id || '', frontendClient);
       setIsEditing(false);
       setLoading(false);
@@ -160,7 +156,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500 pb-20">
-      {/* Header */}
       <div className="flex items-center gap-4 no-print">
         <button
           onClick={onBack}
@@ -213,7 +208,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
       )}
 
       <div className="grid lg:grid-cols-3 gap-8">
-        {/* Left Column - Stats */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm border-l-4 border-l-teal-500">
             <TrendingUp size={20} className="text-teal-600 mb-2" />
@@ -232,7 +226,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
           </div>
         </div>
 
-        {/* Right Column - Client Info */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
             <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-6">Client Information</h2>
@@ -435,7 +428,6 @@ const ClientDetails: React.FC<ClientDetailsProps> = ({ client, invoices, onBack,
             )}
           </div>
 
-          {/* Invoices Section */}
           <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
             <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-6">Recent Invoices</h2>
             {clientInvoices.length === 0 ? (

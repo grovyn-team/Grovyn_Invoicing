@@ -9,35 +9,28 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ invoices, onCreateNew, onEditInvoice }) => {
-  // Calculate invoice total after discounts and taxes
   const getInvoiceTotal = (invoice: Invoice): number => {
-    // Calculate subtotal from items
     const subtotal = invoice.items.reduce((acc, item) => acc + item.total, 0);
-    
-    // Apply invoice-level discount if exists
+
     const discountPercentage = invoice.discountPercentage || 0;
     const discountAmount = (subtotal * discountPercentage) / 100;
     const subtotalAfterDiscount = subtotal - discountAmount;
-    
-    // Calculate tax based on tax type
+
     let taxMultiplier = 1;
     if (invoice.taxType === 'GST') {
-      // Calculate average tax rate from items, default to 18% if no items
-      const avgTaxRate = invoice.items.length > 0 
+      const avgTaxRate = invoice.items.length > 0
         ? invoice.items.reduce((sum, item) => sum + (item.taxRate || 18), 0) / invoice.items.length
         : 18;
-      taxMultiplier = 1 + (avgTaxRate / 100); // e.g., 1.18 for 18% GST
+      taxMultiplier = 1 + (avgTaxRate / 100);
     } else if (invoice.taxType === 'EXPORT' || invoice.taxType === 'NONE') {
-      taxMultiplier = 1; // No tax
+      taxMultiplier = 1;
     }
-    
-    // Final total after discount and tax
+
     const finalTotal = subtotalAfterDiscount * taxMultiplier;
     
     return finalTotal;
   };
 
-  // Calculate metrics from real invoice data
   const grossRevenue = invoices.reduce((acc, inv) => acc + getInvoiceTotal(inv), 0);
   const collections = invoices
     .filter(inv => inv.status === InvoiceStatus.PAID)
@@ -48,23 +41,18 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, onCreateNew, onEditInvo
   const overdueInvoices = invoices.filter(inv => inv.status === InvoiceStatus.OVERDUE);
   const riskProfile = overdueInvoices.length;
 
-  // Calculate conversion rate (collections / gross revenue)
   const conversionRate = grossRevenue > 0 ? Math.round((collections / grossRevenue) * 100) : 0;
 
-  // Calculate average TAT (Turnaround Time) - placeholder calculation
-  const avgTAT = 12; // This could be calculated from actual payment dates if available
+  const avgTAT = 12;
 
-  // Calculate month-over-month change (placeholder - would need historical data)
-  const monthOverMonthChange = 8.2; // This would need to be calculated from previous month's data
+  const monthOverMonthChange = 8.2;
 
-  // Sort invoices by issue date (newest first) for the ledger
   const sortedInvoices = [...invoices].sort((a, b) => {
     return new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime();
   });
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 uppercase">Financial Suite</h1>
@@ -79,9 +67,7 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, onCreateNew, onEditInvo
         </button>
       </div>
 
-      {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Gross Revenue */}
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
@@ -96,7 +82,6 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, onCreateNew, onEditInvo
           <p className="text-[9px] text-slate-500 font-medium mt-2">VS LAST MONTH</p>
         </div>
 
-        {/* Collections */}
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
@@ -108,7 +93,6 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, onCreateNew, onEditInvo
           <p className="text-[9px] text-slate-500 font-medium mt-2">{conversionRate}% CONVERSION</p>
         </div>
 
-        {/* In-Process */}
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
@@ -120,7 +104,6 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, onCreateNew, onEditInvo
           <p className="text-[9px] text-slate-500 font-medium mt-2">AVG. {avgTAT} DAYS TAT</p>
         </div>
 
-        {/* Risk Profile */}
         <div className="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center">
@@ -133,7 +116,6 @@ const Dashboard: React.FC<DashboardProps> = ({ invoices, onCreateNew, onEditInvo
         </div>
       </div>
 
-      {/* Financial Ledger */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">

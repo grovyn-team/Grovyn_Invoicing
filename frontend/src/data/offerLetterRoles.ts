@@ -4,6 +4,10 @@ export interface RoleTemplate {
     department: string;
     responsibilities: string[];
     reportingManager?: string;
+    noticePeriod?: string;
+    workLocation?: string;
+    termsAndConditions?: string;
+    additionalNotes?: string;
     internshipDescription?: string;
     incentiveTerms?: string[];
 }
@@ -103,16 +107,17 @@ export const ROLE_TEMPLATES: Record<string, RoleTemplate> = {
         designation: 'Independent Sales Strategy Consultant',
         department: 'Sales & Strategy',
         reportingManager: 'Aman K.A',
+        noticePeriod: "fifteen (15) days' written notice",
+        workLocation: 'Fully remote',
         responsibilities: [
-            'Strategic contribution and client acquisition support',
-            'Responsibilities as communicated by your reporting manager, evolving based on business requirements',
-            'Contributing to sales strategy and business development initiatives',
-            'Maintaining confidentiality and adhering to consulting engagement terms'
+            'Your responsibilities will be communicated by your reporting manager (Aman K.A) and may evolve based on business requirements.',
+            'This role is designed for strategic contribution and client acquisition support. Continued engagement is subject to performance, conduct, and business requirements at Grovyn\'s discretion.'
         ],
+        termsAndConditions: "This engagement is strictly on an independent consultant basis and does not constitute employment, partnership, or agency. The consultant shall not represent themselves as an employee of Grovyn. No salary, stipend, statutory benefits, or employment entitlements shall apply. The consultant shall be responsible for all applicable taxes and compliance obligations arising from commissions received.",
+        additionalNotes: "This role is designed for strategic contribution and client acquisition support. Continued engagement is subject to performance, conduct, and business requirements at Grovyn's discretion.",
         incentiveTerms: [
-            'Commission-only engagement; no salary, stipend, or fixed remuneration',
-            'Any commission subject to successful client onboarding, payment realization, and written approval by Grovyn',
-            'Continued engagement subject to performance, conduct, and business requirements at Grovyn\'s discretion'
+            'This engagement is commission-only in nature. No salary, stipend, fixed remuneration, or statutory employment benefits shall be payable.',
+            'Any commission, if applicable, shall be subject to successful client onboarding, payment realization, and written approval by Grovyn.'
         ]
     }
 };

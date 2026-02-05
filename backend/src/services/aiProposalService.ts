@@ -164,7 +164,6 @@ export async function generateProposalDraft(
     const jsonText = extractJSON(aiText);
     const parsed = JSON.parse(jsonText);
 
-    // Date fixes
     const todayStr = new Date().toISOString().split('T')[0];
     if (!parsed.proposalDate || parsed.proposalDate.includes('YYYY')) parsed.proposalDate = todayStr;
     if (!parsed.validUntil || parsed.validUntil.includes('YYYY')) {

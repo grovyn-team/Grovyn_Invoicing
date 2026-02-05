@@ -10,7 +10,6 @@ export const createInvoice = async (req: AuthRequest, res: Response): Promise<vo
   try {
     const company = await Company.findOne();
     
-    // Filter out empty items and validate
     const validItems = (req.body.items || []).filter((item: any) => {
       return item && item.name && item.description && item.name.trim() !== '' && item.description.trim() !== '';
     });
@@ -20,19 +19,15 @@ export const createInvoice = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
-    // Calculate subtotal from items
     const subtotal = validItems.reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
-    
-    // Calculate discountTotal from discountPercentage if provided
+
     const discountPercentage = req.body.discountPercentage;
     const discountTotal = discountPercentage 
       ? (subtotal * discountPercentage / 100)
       : (req.body.discountTotal || 0);
     
-    // Ensure taxDetails structure (clone to avoid mutation)
     const taxDetails = req.body.taxDetails ? { ...req.body.taxDetails } : { isExportOfServices: false };
-    
-    // Prepare invoice data
+
     const invoiceData: any = {
       ...req.body,
       items: validItems,
@@ -44,7 +39,6 @@ export const createInvoice = async (req: AuthRequest, res: Response): Promise<vo
       taxDetails,
     };
 
-    // Generate invoice number if not provided
     if (!invoiceData.invoiceNumber) {
       invoiceData.invoiceNumber = await generateInvoiceNumber(
         invoiceData.invoiceType || 'Tax Invoice',
@@ -53,12 +47,10 @@ export const createInvoice = async (req: AuthRequest, res: Response): Promise<vo
       );
     }
 
-    // Set createdBy from authenticated user
     if (req.user) {
       invoiceData.createdBy = req.user._id;
     }
 
-    // Ensure dates are Date objects
     if (invoiceData.invoiceDate) {
       invoiceData.invoiceDate = new Date(invoiceData.invoiceDate);
     }
@@ -69,11 +61,9 @@ export const createInvoice = async (req: AuthRequest, res: Response): Promise<vo
       invoiceData.serviceOptedDate = new Date(invoiceData.serviceOptedDate);
     }
 
-    // Calculate taxAmount and total (similar to pre-save hook logic)
     const subtotalAfterDiscount = subtotal - invoiceData.discountTotal;
     let taxAmount = 0;
-    
-    // Use taxProtocol if available, otherwise fall back to isExportOfServices
+
     const taxProtocol = taxDetails.taxProtocol;
     const isExport = taxProtocol === 'EXPORT' || (taxProtocol === undefined && taxDetails.isExportOfServices);
     const isNoTax = taxProtocol === 'NONE';
@@ -84,7 +74,6 @@ export const createInvoice = async (req: AuthRequest, res: Response): Promise<vo
       taxDetails.igst = 0;
       taxAmount = 0;
     } else {
-      // Calculate GST (taxProtocol === 'GST' or undefined/legacy)
       const gstRate = validItems[0]?.taxRate || 18;
       if (invoiceData.clientState === taxDetails.placeOfSupply || !taxDetails.placeOfSupply) {
         taxDetails.cgst = (subtotalAfterDiscount * gstRate) / 200;
@@ -102,18 +91,15 @@ export const createInvoice = async (req: AuthRequest, res: Response): Promise<vo
     invoiceData.taxAmount = taxAmount;
     invoiceData.total = subtotal - invoiceData.discountTotal + taxAmount;
 
-    // Calculate amount in words
     invoiceData.amountInWords = numberToWords(invoiceData.total, invoiceData.currency || 'INR');
 
-    // Create invoice
     const invoice = new Invoice(invoiceData);
     await invoice.save();
 
     res.status(201).json(invoice);
   } catch (error: any) {
     console.error('Error creating invoice:', error);
-    
-    // Handle validation errors
+
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors || {}).map((err: any) => err.message);
       res.status(400).json({ 
@@ -123,17 +109,15 @@ export const createInvoice = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
     
-    // Handle duplicate key errors
     if (error.code === 11000) {
       res.status(400).json({ 
         error: 'Invoice number already exists' 
       });
       return;
     }
-    
-    // Generic error
-    res.status(400).json({ 
-      error: error.message || 'Failed to create invoice' 
+
+    res.status(400).json({
+      error: error.message || 'Failed to create invoice'
     });
   }
 };
@@ -209,33 +193,27 @@ export const updateInvoice = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Handle date conversions
     if (req.body.invoiceDate) {
       invoice.invoiceDate = new Date(req.body.invoiceDate);
     }
     if (req.body.dueDate) {
       invoice.dueDate = new Date(req.body.dueDate);
     }
-    // Handle serviceOptedDate - allow setting, updating, or clearing (null/undefined)
     if (req.body.serviceOptedDate !== undefined) {
       if (req.body.serviceOptedDate && req.body.serviceOptedDate !== '') {
         invoice.serviceOptedDate = new Date(req.body.serviceOptedDate);
       } else {
-        // Clear the field if empty string or null
         invoice.serviceOptedDate = undefined;
       }
     }
 
-    // Update invoice fields
     Object.keys(req.body).forEach((key) => {
       if (key !== 'invoiceDate' && key !== 'dueDate' && key !== 'serviceOptedDate' && key !== '_id' && key !== 'createdAt' && key !== 'updatedAt') {
         (invoice as any)[key] = req.body[key];
       }
     });
 
-    // Validate and recalculate if items are provided
     if (req.body.items && req.body.items.length > 0) {
-      // Filter out empty items
       const validItems = req.body.items.filter((item: any) => {
         return item.name && item.description && item.name.trim() !== '' && item.description.trim() !== '';
       });
@@ -249,17 +227,14 @@ export const updateInvoice = async (req: Request, res: Response): Promise<void> 
       invoice.subtotal = validItems.reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
     }
 
-    // Recalculate discountTotal from discountPercentage if provided
     if (req.body.discountPercentage !== undefined && req.body.discountPercentage !== null) {
       invoice.discountPercentage = req.body.discountPercentage;
       invoice.discountTotal = invoice.subtotal * (invoice?.discountPercentage || 0) / 100;
     }
 
-    // Recalculate taxAmount and total (similar to pre-save hook logic)
     const subtotalAfterDiscount = invoice.subtotal - invoice.discountTotal;
     let taxAmount = 0;
-    
-    // Use taxProtocol if available, otherwise fall back to isExportOfServices
+
     const taxProtocol = invoice.taxDetails.taxProtocol;
     const isExport = taxProtocol === 'EXPORT' || (taxProtocol === undefined && invoice.taxDetails.isExportOfServices);
     const isNoTax = taxProtocol === 'NONE';
@@ -270,7 +245,6 @@ export const updateInvoice = async (req: Request, res: Response): Promise<void> 
       invoice.taxDetails.igst = 0;
       taxAmount = 0;
     } else {
-      // Calculate GST (taxProtocol === 'GST' or undefined/legacy)
       const gstRate = invoice.items[0]?.taxRate || 18;
       if (invoice.clientState === invoice.taxDetails.placeOfSupply || !invoice.taxDetails.placeOfSupply) {
         invoice.taxDetails.cgst = (subtotalAfterDiscount * gstRate) / 200;
@@ -287,15 +261,13 @@ export const updateInvoice = async (req: Request, res: Response): Promise<void> 
     invoice.taxAmount = taxAmount;
     invoice.total = invoice.subtotal - invoice.discountTotal + taxAmount;
     invoice.amountInWords = numberToWords(invoice.total, invoice.currency || 'INR');
-    
-    // Save invoice
+
     await invoice.save();
-    
+
     res.json(invoice);
   } catch (error: any) {
     console.error('Error updating invoice:', error);
-    
-    // Handle validation errors
+
     if (error.name === 'ValidationError') {
       const validationErrors = Object.values(error.errors || {}).map((err: any) => err.message);
       res.status(400).json({ 
@@ -304,10 +276,9 @@ export const updateInvoice = async (req: Request, res: Response): Promise<void> 
       });
       return;
     }
-    
-    // Generic error
-    res.status(400).json({ 
-      error: error.message || 'Failed to update invoice' 
+
+    res.status(400).json({
+      error: error.message || 'Failed to update invoice'
     });
   }
 };
