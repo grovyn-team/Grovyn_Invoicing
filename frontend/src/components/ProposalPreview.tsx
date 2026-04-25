@@ -43,7 +43,7 @@ const ProposalPreview: React.FC<ProposalPreviewProps> = ({ proposal }) => {
                                             />
                                         </div>
                                         <div>
-                                            <h1 className="text-[16px] font-semibold tracking-tight text-slate-900 leading-none">Grovyn Invoice OS</h1>
+                                            <h1 className="text-[16px] font-semibold tracking-tight text-slate-900 leading-none">GROVYN</h1>
                                         </div>
                                     </div>
                                     <div className="mt-5 space-y-1">

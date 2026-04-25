@@ -66,7 +66,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, user
               </div>
               <div>
                 <span className="text-lg font-black tracking-tight text-slate-900 block leading-none">GROVYN</span>
-                <span className="text-[10px] text-teal-600 font-bold tracking-widest uppercase">Invoice OS</span>
+                {activeTab === 'invoices' && (
+                  <span className="text-[10px] text-teal-600 font-bold tracking-widest uppercase">Invoice OS</span>
+                )}
               </div>
             </div>
             <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 text-slate-400 hover:text-slate-900 bg-slate-50 rounded-lg">
