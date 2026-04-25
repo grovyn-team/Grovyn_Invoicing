@@ -27,6 +27,83 @@ body {
     0 1px 2px rgb(0 0 0 / 0.1);
 }
 
+.proposal-editor .ql-toolbar {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 0.75rem 0.75rem 0 0;
+  background: #f8fafc;
+}
+
+.proposal-editor .ql-container {
+  border: 1px solid #e2e8f0 !important;
+  border-top: none !important;
+  border-radius: 0 0 0.75rem 0.75rem;
+  background: #ffffff;
+}
+
+.proposal-editor .ql-editor {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 1rem;
+  color: #334155;
+  line-height: 1.7;
+  min-height: 10rem;
+}
+
+.proposal-editor.compact .ql-editor {
+  min-height: 7rem;
+}
+
+.proposal-rich-content p {
+  margin: 0 0 0.55rem;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.proposal-rich-content ul,
+.proposal-rich-content ol {
+  margin: 0.5rem 0 1rem 1.5rem;
+}
+
+.proposal-rich-content li {
+  margin-bottom: 0.2rem;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.proposal-rich-content h1,
+.proposal-rich-content h2,
+.proposal-rich-content h3 {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.75rem 0 0.45rem;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.proposal-rich-content h4,
+.proposal-rich-content h5,
+.proposal-rich-content h6 {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0.6rem 0 0.4rem;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.proposal-rich-content small {
+  font-size: 12px;
+}
+
+.proposal-document {
+  color: #1e293b;
+}
+
+.proposal-rich-content a {
+  color: #0f766e;
+  text-decoration: underline;
+}
+
 /* =========================
    Print styles
 ========================= */
@@ -175,5 +252,38 @@ body {
   li {
     orphans: 3;
     widows: 3;
+  }
+
+  .proposal-editor .ql-toolbar {
+    display: none !important;
+  }
+
+  .proposal-editor .ql-container,
+  .proposal-editor .ql-editor {
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .proposal-rich-content p,
+  .proposal-rich-content li {
+    color: #334155 !important;
+  }
+
+  .proposal-rich-content h1,
+  .proposal-rich-content h2,
+  .proposal-rich-content h3 {
+    font-size: 16px !important;
+  }
+
+  .proposal-rich-content h4,
+  .proposal-rich-content h5,
+  .proposal-rich-content h6,
+  .proposal-rich-content p,
+  .proposal-rich-content li {
+    font-size: 14px !important;
+  }
+
+  .proposal-rich-content small {
+    font-size: 12px !important;
   }
 }

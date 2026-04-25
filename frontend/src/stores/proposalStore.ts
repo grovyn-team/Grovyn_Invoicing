@@ -28,8 +28,16 @@ const transformStatus = (backendStatus: string): ProposalStatus => {
 };
 
 const transformBackendProposal = (backendProposal: any, clients: Client[]): Proposal => {
-  const client = clients.find(c => c.id === backendProposal.clientId?._id || backendProposal.clientId || backendProposal.client?.id) || {
-    id: backendProposal.clientId || '',
+  const resolvedClientId = (
+    backendProposal.clientId?._id ||
+    backendProposal.clientId ||
+    backendProposal.client?.id ||
+    backendProposal.client?._id ||
+    ''
+  )?.toString();
+
+  const client = clients.find((c) => c.id?.toString() === resolvedClientId) || {
+    id: resolvedClientId,
     name: backendProposal.clientName || '',
     companyName: backendProposal.clientName || '',
     email: backendProposal.clientEmail || '',

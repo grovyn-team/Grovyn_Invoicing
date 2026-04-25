@@ -1,12 +1,17 @@
 import React from 'react';
 import { Quotation } from '../types/refTypes';
 import { formatDateDDMonYYYY } from '../utils/dateFormat';
+import { normalizeToHtml, sanitizeProposalHtml } from '../utils/proposalRichText';
 
 interface QuotationPreviewProps {
     quotation: Quotation;
 }
 
 const QuotationPreview: React.FC<QuotationPreviewProps> = ({ quotation }) => {
+    const renderRichText = (content: string) => ({
+        __html: sanitizeProposalHtml(normalizeToHtml(content || '')),
+    });
+
     const subtotal = quotation.items.reduce((acc, item) => acc + item.total, 0);
     const discountAmount = (subtotal * (quotation.discountPercentage || 0)) / 100;
     const totalAfterDiscount = subtotal - discountAmount;
@@ -54,7 +59,7 @@ const QuotationPreview: React.FC<QuotationPreviewProps> = ({ quotation }) => {
                     <div className="space-y-6 text-right">
                         <div className="space-y-1">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Project</p>
-                            <h3 className="text-lg font-black text-slate-900">{quotation.projectName}</h3>
+                            <h3 className="text-[16px] font-semibold text-slate-900">{quotation.projectName}</h3>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -67,6 +72,49 @@ const QuotationPreview: React.FC<QuotationPreviewProps> = ({ quotation }) => {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div className="space-y-6 mb-10">
+                    {quotation.projectScope && (
+                        <section>
+                            <h3 className="text-[14px] font-semibold text-slate-900 uppercase tracking-wide border-l-2 border-emerald-600 pl-3 mb-2">Project Scope</h3>
+                            <div
+                                className="proposal-rich-content text-[14px] leading-6 text-slate-700 pl-5"
+                                dangerouslySetInnerHTML={renderRichText(quotation.projectScope)}
+                            />
+                        </section>
+                    )}
+                    {quotation.features && (
+                        <section>
+                            <h3 className="text-[14px] font-semibold text-slate-900 uppercase tracking-wide border-l-2 border-emerald-600 pl-3 mb-2">Features</h3>
+                            <div
+                                className="proposal-rich-content text-[14px] leading-6 text-slate-700 pl-5"
+                                dangerouslySetInnerHTML={renderRichText(quotation.features)}
+                            />
+                        </section>
+                    )}
+                    {(quotation.deliverables || quotation.supportDetails) && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border border-slate-200 rounded-md p-4 bg-slate-50/40">
+                            {quotation.deliverables && (
+                                <section>
+                                    <h4 className="text-[12px] font-semibold text-emerald-600 uppercase tracking-wide mb-2">Deliverables</h4>
+                                    <div
+                                        className="proposal-rich-content text-[12px] leading-6 text-slate-600"
+                                        dangerouslySetInnerHTML={renderRichText(quotation.deliverables)}
+                                    />
+                                </section>
+                            )}
+                            {quotation.supportDetails && (
+                                <section>
+                                    <h4 className="text-[12px] font-semibold text-emerald-600 uppercase tracking-wide mb-2">Support Details</h4>
+                                    <div
+                                        className="proposal-rich-content text-[12px] leading-6 text-slate-600"
+                                        dangerouslySetInnerHTML={renderRichText(quotation.supportDetails)}
+                                    />
+                                </section>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="mb-12">
@@ -122,14 +170,18 @@ const QuotationPreview: React.FC<QuotationPreviewProps> = ({ quotation }) => {
 
                 <div className="grid grid-cols-2 gap-12 mb-16 pt-12 border-t border-slate-100">
                     <div>
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Terms & Conditions</h4>
-                        <div className="text-[10px] leading-relaxed text-slate-500 whitespace-pre-wrap">
-                            {quotation.terms || '1. Payments are due as per agreed milestones.\n2. Quotation is valid for 30 days from the date of issue.\n3. Taxes are calculated as per prevailing laws.'}
-                        </div>
+                        <h4 className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-3">Terms & Conditions</h4>
+                        <div
+                            className="proposal-rich-content text-[14px] leading-6 text-slate-600"
+                            dangerouslySetInnerHTML={renderRichText(quotation.terms || '1. Payments are due as per agreed milestones.\n2. Quotation is valid for 30 days from the date of issue.\n3. Taxes are calculated as per prevailing laws.')}
+                        />
                     </div>
                     <div>
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Payment Schedule</h4>
-                        <p className="text-[10px] font-bold text-slate-700">{quotation.paymentTerms || 'As negotiated'}</p>
+                        <h4 className="text-[12px] font-semibold text-slate-500 uppercase tracking-wide mb-3">Payment Schedule</h4>
+                        <div
+                            className="proposal-rich-content text-[14px] leading-6 text-slate-700"
+                            dangerouslySetInnerHTML={renderRichText(quotation.paymentTerms || 'As negotiated')}
+                        />
                     </div>
                 </div>
 

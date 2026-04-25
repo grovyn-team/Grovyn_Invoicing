@@ -91,6 +91,7 @@ const App: React.FC = () => {
     if (user && clients.length > 0 && !hasFetchedData) {
       const invoicesLoading = useInvoicesStore.getState().loading;
       const quotationsLoading = useQuotationsStore.getState().loading;
+      const proposalsLoading = useProposalsStore.getState().loading;
 
       if (!invoicesLoading && invoices.length === 0) {
         fetchInvoices(clients);
@@ -105,10 +106,14 @@ const App: React.FC = () => {
         fetchOfferLetters();
       }
 
+      if (!proposalsLoading && proposals.length === 0) {
+        fetchProposals(clients);
+      }
+
       setHasFetchedData(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, clients.length, hasFetchedData, offerLetters.length]);
+  }, [user, clients.length, hasFetchedData, offerLetters.length, proposals.length]);
 
   const handleLogin = (userData: Parameters<typeof login>[0]) => {
     login(userData);

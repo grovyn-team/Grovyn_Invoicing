@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Save, Eye, EyeOff, Download, ChevronLeft, Share2, Sparkles } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { Plus, Trash2, Save, Eye, EyeOff, Download, ChevronLeft, Share2, Sparkles, Upload } from 'lucide-react';
 import { Quotation, LineItem, QuotationStatus, Client } from '../types/refTypes';
 import AIQuotationModal from './AIQuotationModal';
 import QuotationPreview from './QuotationPreview';
 import { toast } from '../utils/toast';
+import { markdownToSanitizedHtml, normalizeToHtml, parseMarkdownToProposalSections, sanitizeProposalHtml } from '../utils/proposalRichText';
 
 interface QuotationEditorProps {
   initialQuotation?: Quotation;
@@ -16,6 +19,7 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
   const [showPreview, setShowPreview] = useState(false);
   const [showAIModal, setShowAIModal] = useState(false);
   const [aiFilledFields, setAiFilledFields] = useState<Set<string>>(new Set());
+  const markdownFileInputRef = useRef<HTMLInputElement | null>(null);
   const [quotation, setQuotation] = useState<Quotation>(initialQuotation || {
     id: Math.random().toString(36).substr(2, 9),
     quotationNumber: `GRV/${new Date().getFullYear()}/QUO/${Math.floor(100 + Math.random() * 899)}`,
@@ -44,8 +48,30 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
 
   useEffect(() => {
     if (initialQuotation) {
-      setQuotation(initialQuotation);
+      setQuotation({
+        ...initialQuotation,
+        projectScope: normalizeToHtml(initialQuotation.projectScope || ''),
+        features: normalizeToHtml(initialQuotation.features || ''),
+        deliverables: normalizeToHtml(initialQuotation.deliverables || ''),
+        supportDetails: normalizeToHtml(initialQuotation.supportDetails || ''),
+        terms: normalizeToHtml(initialQuotation.terms || ''),
+        notes: normalizeToHtml(initialQuotation.notes || ''),
+      });
       setAiFilledFields(new Set());
+    }
+  }, [initialQuotation]);
+
+  useEffect(() => {
+    if (!initialQuotation) {
+      setQuotation((prev) => ({
+        ...prev,
+        projectScope: normalizeToHtml(prev.projectScope || ''),
+        features: normalizeToHtml(prev.features || ''),
+        deliverables: normalizeToHtml(prev.deliverables || ''),
+        supportDetails: normalizeToHtml(prev.supportDetails || ''),
+        terms: normalizeToHtml(prev.terms || ''),
+        notes: normalizeToHtml(prev.notes || ''),
+      }));
     }
   }, [initialQuotation]);
 
@@ -57,10 +83,10 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
       quotationDate: draft.quotationDate || quotation.quotationDate,
       validUntil: draft.validUntil || quotation.validUntil,
       projectName: draft.projectName || quotation.projectName,
-      projectScope: draft.projectScope || quotation.projectScope,
-      features: draft.features || quotation.features,
-      deliverables: draft.deliverables || quotation.deliverables,
-      supportDetails: draft.supportDetails || quotation.supportDetails,
+      projectScope: draft.projectScope ? normalizeToHtml(draft.projectScope) : quotation.projectScope,
+      features: draft.features ? normalizeToHtml(draft.features) : quotation.features,
+      deliverables: draft.deliverables ? normalizeToHtml(draft.deliverables) : quotation.deliverables,
+      supportDetails: draft.supportDetails ? normalizeToHtml(draft.supportDetails) : quotation.supportDetails,
       warrantyPeriod: draft.warrantyPeriod || quotation.warrantyPeriod,
       timeline: draft.timeline || quotation.timeline,
       items: draft.items?.map((item: any) => ({
@@ -75,8 +101,8 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
       })) || quotation.items,
       taxType: draft.taxDetails?.taxProtocol || 'GST',
       discountPercentage: draft.discountPercentage,
-      notes: draft.notes || quotation.notes,
-      terms: draft.terms || quotation.terms,
+      notes: draft.notes ? normalizeToHtml(draft.notes) : quotation.notes,
+      terms: draft.terms ? normalizeToHtml(draft.terms) : quotation.terms,
       paymentTerms: draft.paymentTerms || quotation.paymentTerms,
       validityPeriod: draft.validityPeriod || 30,
     };
@@ -128,6 +154,87 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
     });
   };
 
+  const quillModules = useMemo(() => ({
+    toolbar: [
+      [{ header: [2, 3, false] }],
+      ['bold', 'italic', 'underline', 'blockquote'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ align: [] }],
+      ['link', 'clean'],
+    ],
+  }), []);
+
+  const quillFormats = [
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'blockquote',
+    'list',
+    'bullet',
+    'align',
+    'link',
+  ];
+
+  const clearAiTagForField = (field: string) => {
+    if (!aiFilledFields.has(field)) return;
+    setAiFilledFields((prev) => {
+      const next = new Set(prev);
+      next.delete(field);
+      return next;
+    });
+  };
+
+  const updateRichField = (field: keyof Quotation, content: string) => {
+    setQuotation((prev) => ({ ...prev, [field]: content }));
+    clearAiTagForField(field);
+  };
+
+  const handleMarkdownImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.md') && file.type !== 'text/markdown') {
+      toast.error('Please select a valid .md file.');
+      return;
+    }
+
+    try {
+      const markdownContent = await file.text();
+      const parsed = parseMarkdownToProposalSections(markdownContent);
+      const fallbackContent = markdownToSanitizedHtml(markdownContent);
+
+      setQuotation((prev) => ({
+        ...prev,
+        projectName: parsed.projectName || prev.projectName,
+        projectScope: parsed.problemStatement || prev.projectScope || fallbackContent,
+        features: parsed.solution || prev.features,
+        deliverables: parsed.deliverables || prev.deliverables,
+        supportDetails: parsed.nextSteps || prev.supportDetails,
+        timeline: parsed.timelineEstimate ? parsed.timelineEstimate.replace(/<[^>]+>/g, ' ').trim() : prev.timeline,
+        terms: parsed.exclusions || prev.terms,
+      }));
+      toast.success('Markdown imported into quotation sections.');
+    } catch (error) {
+      console.error('Failed to import markdown file', error);
+      toast.error('Unable to import markdown file.');
+    } finally {
+      event.target.value = '';
+    }
+  };
+
+  const handleSave = () => {
+    onSave({
+      ...quotation,
+      projectScope: sanitizeProposalHtml(normalizeToHtml(quotation.projectScope || '')),
+      features: sanitizeProposalHtml(normalizeToHtml(quotation.features || '')),
+      deliverables: sanitizeProposalHtml(normalizeToHtml(quotation.deliverables || '')),
+      supportDetails: sanitizeProposalHtml(normalizeToHtml(quotation.supportDetails || '')),
+      terms: sanitizeProposalHtml(normalizeToHtml(quotation.terms || '')),
+      notes: sanitizeProposalHtml(normalizeToHtml(quotation.notes || '')),
+    });
+  };
+
   const removeItem = (id: string) => {
     if (quotation.items.length === 1) return;
     setQuotation({ ...quotation, items: quotation.items.filter(item => item.id !== id) });
@@ -165,12 +272,26 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
             <span className="hidden xs:inline">{showPreview ? 'Hide' : 'Preview'}</span>
           </button>
           <button
-            onClick={() => onSave(quotation)}
+            onClick={handleSave}
             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs md:text-sm hover:bg-black shadow-xl shadow-slate-200 transition-all active:scale-95"
           >
             <Save size={16} />
             {quotation.status === QuotationStatus.DRAFT ? 'Save Draft' : 'Update'}
           </button>
+          <button
+            onClick={() => markdownFileInputRef.current?.click()}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+          >
+            <Upload size={16} />
+            <span className="hidden xs:inline">Import .md</span>
+          </button>
+          <input
+            ref={markdownFileInputRef}
+            type="file"
+            accept=".md,text/markdown"
+            className="hidden"
+            onChange={handleMarkdownImport}
+          />
         </div>
       </div>
 
@@ -297,24 +418,17 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${aiFilledFields.has('projectScope')
-                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                    : 'border-slate-200'
-                    }`}
-                  value={quotation.projectScope || ''}
-                  onChange={e => {
-                    setQuotation({ ...quotation, projectScope: e.target.value });
-                    if (aiFilledFields.has('projectScope')) {
-                      setAiFilledFields(prev => {
-                        const next = new Set(prev);
-                        next.delete('projectScope');
-                        return next;
-                      });
-                    }
-                  }}
-                  placeholder="Describe the overall project scope and objectives..."
-                />
+                <div className={`${aiFilledFields.has('projectScope') ? 'border border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10 rounded-xl p-2' : ''}`}>
+                  <ReactQuill
+                    theme="snow"
+                    value={quotation.projectScope || ''}
+                    onChange={(content) => updateRichField('projectScope', content)}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Describe the overall project scope and objectives..."
+                    className="proposal-editor compact min-h-[120px]"
+                  />
+                </div>
               </div>
 
               <div>
@@ -324,24 +438,17 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[150px] resize-y transition-all ${aiFilledFields.has('features')
-                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                    : 'border-slate-200'
-                    }`}
-                  value={quotation.features || ''}
-                  onChange={e => {
-                    setQuotation({ ...quotation, features: e.target.value });
-                    if (aiFilledFields.has('features')) {
-                      setAiFilledFields(prev => {
-                        const next = new Set(prev);
-                        next.delete('features');
-                        return next;
-                      });
-                    }
-                  }}
-                  placeholder="List all features and functionalities in detail..."
-                />
+                <div className={`${aiFilledFields.has('features') ? 'border border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10 rounded-xl p-2' : ''}`}>
+                  <ReactQuill
+                    theme="snow"
+                    value={quotation.features || ''}
+                    onChange={(content) => updateRichField('features', content)}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="List all features and functionalities in detail..."
+                    className="proposal-editor compact min-h-[150px]"
+                  />
+                </div>
               </div>
 
               <div>
@@ -351,24 +458,17 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${aiFilledFields.has('deliverables')
-                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                    : 'border-slate-200'
-                    }`}
-                  value={quotation.deliverables || ''}
-                  onChange={e => {
-                    setQuotation({ ...quotation, deliverables: e.target.value });
-                    if (aiFilledFields.has('deliverables')) {
-                      setAiFilledFields(prev => {
-                        const next = new Set(prev);
-                        next.delete('deliverables');
-                        return next;
-                      });
-                    }
-                  }}
-                  placeholder="List all deliverables..."
-                />
+                <div className={`${aiFilledFields.has('deliverables') ? 'border border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10 rounded-xl p-2' : ''}`}>
+                  <ReactQuill
+                    theme="snow"
+                    value={quotation.deliverables || ''}
+                    onChange={(content) => updateRichField('deliverables', content)}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="List all deliverables..."
+                    className="proposal-editor compact min-h-[120px]"
+                  />
+                </div>
               </div>
 
               <div>
@@ -378,24 +478,17 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${aiFilledFields.has('supportDetails')
-                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                    : 'border-slate-200'
-                    }`}
-                  value={quotation.supportDetails || ''}
-                  onChange={e => {
-                    setQuotation({ ...quotation, supportDetails: e.target.value });
-                    if (aiFilledFields.has('supportDetails')) {
-                      setAiFilledFields(prev => {
-                        const next = new Set(prev);
-                        next.delete('supportDetails');
-                        return next;
-                      });
-                    }
-                  }}
-                  placeholder="Describe support, maintenance, and warranty details..."
-                />
+                <div className={`${aiFilledFields.has('supportDetails') ? 'border border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10 rounded-xl p-2' : ''}`}>
+                  <ReactQuill
+                    theme="snow"
+                    value={quotation.supportDetails || ''}
+                    onChange={(content) => updateRichField('supportDetails', content)}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Describe support, maintenance, and warranty details..."
+                    className="proposal-editor compact min-h-[100px]"
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -590,24 +683,17 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[120px] resize-y transition-all ${aiFilledFields.has('terms')
-                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                    : 'border-slate-200'
-                    }`}
-                  value={quotation.terms || ''}
-                  onChange={e => {
-                    setQuotation({ ...quotation, terms: e.target.value });
-                    if (aiFilledFields.has('terms')) {
-                      setAiFilledFields(prev => {
-                        const next = new Set(prev);
-                        next.delete('terms');
-                        return next;
-                      });
-                    }
-                  }}
-                  placeholder="Enter terms and conditions..."
-                />
+                <div className={`${aiFilledFields.has('terms') ? 'border border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10 rounded-xl p-2' : ''}`}>
+                  <ReactQuill
+                    theme="snow"
+                    value={quotation.terms || ''}
+                    onChange={(content) => updateRichField('terms', content)}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Enter terms and conditions..."
+                    className="proposal-editor compact min-h-[120px]"
+                  />
+                </div>
               </div>
 
               <div>
@@ -617,24 +703,17 @@ const QuotationEditor: React.FC<QuotationEditorProps> = ({ initialQuotation, onS
                     <span className="ml-2 text-[8px] text-teal-500 font-bold">AI SUGGESTED</span>
                   )}
                 </label>
-                <textarea
-                  className={`w-full px-4 py-3 bg-slate-50 border rounded-xl focus:border-teal-500 outline-none text-sm font-medium min-h-[100px] resize-y transition-all ${aiFilledFields.has('notes')
-                    ? 'border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10'
-                    : 'border-slate-200'
-                    }`}
-                  value={quotation.notes || ''}
-                  onChange={e => {
-                    setQuotation({ ...quotation, notes: e.target.value });
-                    if (aiFilledFields.has('notes')) {
-                      setAiFilledFields(prev => {
-                        const next = new Set(prev);
-                        next.delete('notes');
-                        return next;
-                      });
-                    }
-                  }}
-                  placeholder="Add any additional notes..."
-                />
+                <div className={`${aiFilledFields.has('notes') ? 'border border-teal-300 bg-teal-50/30 shadow-sm shadow-teal-500/10 rounded-xl p-2' : ''}`}>
+                  <ReactQuill
+                    theme="snow"
+                    value={quotation.notes || ''}
+                    onChange={(content) => updateRichField('notes', content)}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Add any additional notes..."
+                    className="proposal-editor compact min-h-[100px]"
+                  />
+                </div>
               </div>
 
               <div>

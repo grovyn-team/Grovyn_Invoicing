@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Save, Eye, EyeOff, Download, ChevronLeft, Share2, Sparkles, FileText, Info, CheckCircle, AlertTriangle, HelpCircle } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import { Save, Eye, EyeOff, Download, ChevronLeft, Share2, Sparkles, FileText, Info, CheckCircle, AlertTriangle, HelpCircle, Upload } from 'lucide-react';
 import { Proposal, ProposalStatus, Client } from '../types/refTypes';
 import AIProposalModal from './AIProposalModal';
 import ProposalPreview from './ProposalPreview';
 import { toast } from '../utils/toast';
+import { MarkdownSectionData, normalizeToHtml, parseMarkdownToProposalSections, sanitizeProposalHtml } from '../utils/proposalRichText';
 
 interface ProposalEditorProps {
     initialProposal?: Proposal;
@@ -16,6 +19,7 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
     const [showPreview, setShowPreview] = useState(false);
     const [showAIModal, setShowAIModal] = useState(false);
     const [aiFilledFields, setAiFilledFields] = useState<Set<string>>(new Set());
+    const markdownFileInputRef = useRef<HTMLInputElement | null>(null);
     const [proposal, setProposal] = useState<Proposal>(initialProposal || {
         id: Math.random().toString(36).substr(2, 9),
         proposalNumber: `PRP/${new Date().getFullYear()}/${Math.floor(100 + Math.random() * 899)}`,
@@ -39,7 +43,31 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
 
     useEffect(() => {
         if (initialProposal) {
-            setProposal(initialProposal);
+            setProposal({
+                ...initialProposal,
+                problemStatement: normalizeToHtml(initialProposal.problemStatement),
+                solution: normalizeToHtml(initialProposal.solution),
+                scope: normalizeToHtml(initialProposal.scope),
+                deliverables: normalizeToHtml(initialProposal.deliverables),
+                timelineEstimate: normalizeToHtml(initialProposal.timelineEstimate),
+                exclusions: normalizeToHtml(initialProposal.exclusions),
+                nextSteps: normalizeToHtml(initialProposal.nextSteps),
+            });
+        }
+    }, [initialProposal]);
+
+    useEffect(() => {
+        if (!initialProposal) {
+            setProposal((prev) => ({
+                ...prev,
+                problemStatement: normalizeToHtml(prev.problemStatement),
+                solution: normalizeToHtml(prev.solution),
+                scope: normalizeToHtml(prev.scope),
+                deliverables: normalizeToHtml(prev.deliverables),
+                timelineEstimate: normalizeToHtml(prev.timelineEstimate),
+                exclusions: normalizeToHtml(prev.exclusions),
+                nextSteps: normalizeToHtml(prev.nextSteps),
+            }));
         }
     }, [initialProposal]);
 
@@ -49,13 +77,13 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
         const updatedProposal: Proposal = {
             ...proposal,
             projectName: draft.projectName || proposal.projectName,
-            problemStatement: draft.problemStatement || proposal.problemStatement,
-            solution: draft.solution || proposal.solution,
-            scope: draft.scope || proposal.scope,
-            deliverables: draft.deliverables || proposal.deliverables,
-            timelineEstimate: draft.timelineEstimate || proposal.timelineEstimate,
-            exclusions: draft.exclusions || proposal.exclusions,
-            nextSteps: draft.nextSteps || proposal.nextSteps,
+            problemStatement: draft.problemStatement ? normalizeToHtml(draft.problemStatement) : proposal.problemStatement,
+            solution: draft.solution ? normalizeToHtml(draft.solution) : proposal.solution,
+            scope: draft.scope ? normalizeToHtml(draft.scope) : proposal.scope,
+            deliverables: draft.deliverables ? normalizeToHtml(draft.deliverables) : proposal.deliverables,
+            timelineEstimate: draft.timelineEstimate ? normalizeToHtml(draft.timelineEstimate) : proposal.timelineEstimate,
+            exclusions: draft.exclusions ? normalizeToHtml(draft.exclusions) : proposal.exclusions,
+            nextSteps: draft.nextSteps ? normalizeToHtml(draft.nextSteps) : proposal.nextSteps,
             version: draft.version || proposal.version,
         };
 
@@ -83,6 +111,126 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                 return next;
             });
         }
+    };
+
+    const quillModules = useMemo(() => ({
+        toolbar: [
+            [{ header: [2, 3, false] }],
+            ['bold', 'italic', 'underline', 'blockquote'],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ align: [] }],
+            ['link', 'clean'],
+        ],
+    }), []);
+
+    const quillFormats = [
+        'header',
+        'bold',
+        'italic',
+        'underline',
+        'blockquote',
+        'list',
+        'bullet',
+        'align',
+        'link',
+    ];
+
+    const handleMarkdownImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.name.toLowerCase().endsWith('.md') && file.type !== 'text/markdown') {
+            toast.error('Please select a valid .md file.');
+            return;
+        }
+
+        try {
+            const markdownContent = await file.text();
+            const parsedSections: MarkdownSectionData = parseMarkdownToProposalSections(markdownContent);
+
+            setProposal((prev) => ({
+                ...prev,
+                projectName: parsedSections.projectName || prev.projectName,
+                problemStatement: parsedSections.problemStatement || prev.problemStatement,
+                solution: parsedSections.solution || prev.solution,
+                scope: parsedSections.scope || prev.scope,
+                deliverables: parsedSections.deliverables || prev.deliverables,
+                timelineEstimate: parsedSections.timelineEstimate || prev.timelineEstimate,
+                exclusions: parsedSections.exclusions || prev.exclusions,
+                nextSteps: parsedSections.nextSteps || prev.nextSteps,
+            }));
+            toast.success('Markdown imported. Review and refine before export.');
+        } catch (error) {
+            console.error('Failed to import markdown file', error);
+            toast.error('Unable to import markdown file.');
+        } finally {
+            event.target.value = '';
+        }
+    };
+
+    const richTextSections: Array<{ id: keyof Proposal; title: string; icon: React.ReactNode; placeholder: string; minHeightClass: string }> = [
+        {
+            id: 'problemStatement',
+            title: '01. Problem Statement',
+            icon: <AlertTriangle size={18} />,
+            placeholder: 'Describe the challenges the client is facing...',
+            minHeightClass: 'min-h-[160px]',
+        },
+        {
+            id: 'solution',
+            title: '02. Proposed Solution',
+            icon: <CheckCircle size={18} />,
+            placeholder: 'Describe how your proposed system/service will solve their problems...',
+            minHeightClass: 'min-h-[200px]',
+        },
+        {
+            id: 'scope',
+            title: '03. High-Level Scope',
+            icon: <Info size={18} />,
+            placeholder: 'Define the boundaries of the project...',
+            minHeightClass: 'min-h-[180px]',
+        },
+        {
+            id: 'deliverables',
+            title: '04. Deliverables',
+            icon: <FileText size={18} />,
+            placeholder: 'List the key outputs/deliverables...',
+            minHeightClass: 'min-h-[180px]',
+        },
+        {
+            id: 'timelineEstimate',
+            title: 'Timeline Estimate',
+            icon: <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />,
+            placeholder: 'e.g., 8-12 weeks, milestone-wise delivery...',
+            minHeightClass: 'min-h-[120px]',
+        },
+        {
+            id: 'exclusions',
+            title: "What's NOT Included",
+            icon: <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />,
+            placeholder: 'Clearly list out-of-scope items...',
+            minHeightClass: 'min-h-[120px]',
+        },
+        {
+            id: 'nextSteps',
+            title: 'Next Steps',
+            icon: <HelpCircle size={18} className="text-teal-500" />,
+            placeholder: 'How do we proceed after reviewing this document?',
+            minHeightClass: 'min-h-[120px]',
+        },
+    ];
+
+    const handleSave = () => {
+        onSave({
+            ...proposal,
+            problemStatement: sanitizeProposalHtml(normalizeToHtml(proposal.problemStatement)),
+            solution: sanitizeProposalHtml(normalizeToHtml(proposal.solution)),
+            scope: sanitizeProposalHtml(normalizeToHtml(proposal.scope)),
+            deliverables: sanitizeProposalHtml(normalizeToHtml(proposal.deliverables)),
+            timelineEstimate: sanitizeProposalHtml(normalizeToHtml(proposal.timelineEstimate)),
+            exclusions: sanitizeProposalHtml(normalizeToHtml(proposal.exclusions)),
+            nextSteps: sanitizeProposalHtml(normalizeToHtml(proposal.nextSteps)),
+        });
     };
 
     const currentClient = proposal.client?.id
@@ -124,12 +272,26 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                         <span className="hidden xs:inline">{showPreview ? 'Edit' : 'Preview'}</span>
                     </button>
                     <button
-                        onClick={() => onSave(proposal)}
+                        onClick={handleSave}
                         className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold text-xs md:text-sm hover:bg-black shadow-xl shadow-slate-200 transition-all active:scale-95"
                     >
                         <Save size={16} />
                         Save Proposal
                     </button>
+                    <button
+                        onClick={() => markdownFileInputRef.current?.click()}
+                        className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs md:text-sm transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                    >
+                        <Upload size={16} />
+                        <span className="hidden xs:inline">Import .md</span>
+                    </button>
+                    <input
+                        ref={markdownFileInputRef}
+                        type="file"
+                        accept=".md,text/markdown"
+                        className="hidden"
+                        onChange={handleMarkdownImport}
+                    />
                 </div>
             </div>
 
@@ -210,109 +372,60 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                                 </div>
                             </div>
 
-                            <section className="space-y-4 group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                                        <AlertTriangle size={18} />
-                                    </div>
-                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">01. Problem Statement</h3>
-                                    {aiFilledFields.has('problemStatement') && (
-                                        <span className="text-[10px] font-bold text-teal-500 bg-teal-50 px-2 py-0.5 rounded animate-pulse">AI SUGGESTED</span>
-                                    )}
-                                </div>
-                                <textarea
-                                    className={`w-full min-h-[120px] text-lg leading-relaxed text-slate-700 bg-transparent outline-none border-none p-0 focus:ring-0 placeholder:text-slate-200 resize-none transition-all ${aiFilledFields.has('problemStatement') ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}
-                                    value={proposal.problemStatement}
-                                    onChange={e => handleFieldChange('problemStatement', e.target.value)}
-                                    placeholder="Describe the challenges the client is facing..."
-                                />
-                            </section>
-
-                            <section className="space-y-4 group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                        <CheckCircle size={18} />
-                                    </div>
-                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">02. Proposed Solution</h3>
-                                    {aiFilledFields.has('solution') && (
-                                        <span className="text-[10px] font-bold text-teal-500 bg-teal-50 px-2 py-0.5 rounded animate-pulse">AI SUGGESTED</span>
-                                    )}
-                                </div>
-                                <textarea
-                                    className={`w-full min-h-[180px] text-lg leading-relaxed text-slate-700 bg-transparent outline-none border-none p-0 focus:ring-0 placeholder:text-slate-200 resize-none transition-all ${aiFilledFields.has('solution') ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}
-                                    value={proposal.solution}
-                                    onChange={e => handleFieldChange('solution', e.target.value)}
-                                    placeholder="Describe how your proposed system/service will solve their problems..."
-                                />
-                            </section>
-
-                            <section className="space-y-4 group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center">
-                                        <Info size={18} />
-                                    </div>
-                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">03. High-Level Scope</h3>
-                                    {aiFilledFields.has('scope') && (
-                                        <span className="text-[10px] font-bold text-teal-500 bg-teal-50 px-2 py-0.5 rounded animate-pulse">AI SUGGESTED</span>
-                                    )}
-                                </div>
-                                <textarea
-                                    className={`w-full min-h-[150px] text-lg leading-relaxed text-slate-700 bg-transparent outline-none border-none p-0 focus:ring-0 placeholder:text-slate-200 resize-none transition-all ${aiFilledFields.has('scope') ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}
-                                    value={proposal.scope}
-                                    onChange={e => handleFieldChange('scope', e.target.value)}
-                                    placeholder="Define the boundaries of the project..."
-                                />
-                            </section>
-
-                            <section className="space-y-4 group">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                        <FileText size={18} />
-                                    </div>
-                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">04. Deliverables</h3>
-                                    {aiFilledFields.has('deliverables') && (
-                                        <span className="text-[10px] font-bold text-teal-500 bg-teal-50 px-2 py-0.5 rounded animate-pulse">AI SUGGESTED</span>
-                                    )}
-                                </div>
-                                <textarea
-                                    className={`w-full min-h-[150px] text-lg leading-relaxed text-slate-700 bg-transparent outline-none border-none p-0 focus:ring-0 placeholder:text-slate-200 resize-none transition-all ${aiFilledFields.has('deliverables') ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}
-                                    value={proposal.deliverables}
-                                    onChange={e => handleFieldChange('deliverables', e.target.value)}
-                                    placeholder="List the key outputs/deliverables..."
-                                />
-                            </section>
+                            <div className="space-y-8">
+                                {richTextSections.slice(0, 4).map((section, index) => (
+                                    <section key={section.id} className="space-y-4 group">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                                index === 0 ? 'bg-rose-50 text-rose-600' :
+                                                    index === 1 ? 'bg-indigo-50 text-indigo-600' :
+                                                        index === 2 ? 'bg-teal-50 text-teal-600' : 'bg-emerald-50 text-emerald-600'
+                                            }`}>
+                                                {section.icon}
+                                            </div>
+                                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">{section.title}</h3>
+                                            {aiFilledFields.has(section.id) && (
+                                                <span className="text-[10px] font-bold text-teal-500 bg-teal-50 px-2 py-0.5 rounded animate-pulse">AI SUGGESTED</span>
+                                            )}
+                                        </div>
+                                        <div className={`${aiFilledFields.has(section.id) ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}>
+                                            <ReactQuill
+                                                theme="snow"
+                                                value={(proposal[section.id] as string) || ''}
+                                                onChange={(content) => handleFieldChange(section.id, content)}
+                                                modules={quillModules}
+                                                formats={quillFormats}
+                                                placeholder={section.placeholder}
+                                                className={`proposal-editor ${section.minHeightClass}`}
+                                            />
+                                        </div>
+                                    </section>
+                                ))}
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 pt-8 border-t border-slate-100">
-                                <section className="space-y-4">
-                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                        Timeline Estimate
-                                        {aiFilledFields.has('timelineEstimate') && (
-                                            <span className="text-[8px] font-bold text-teal-500 bg-teal-50 px-1.5 py-0.5 rounded">AI</span>
-                                        )}
-                                    </h3>
-                                    <textarea
-                                        className={`w-full min-h-[100px] text-sm leading-relaxed text-slate-600 bg-transparent outline-none border-none p-0 focus:ring-0 placeholder:text-slate-200 resize-none ${aiFilledFields.has('timelineEstimate') ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}
-                                        value={proposal.timelineEstimate}
-                                        onChange={e => handleFieldChange('timelineEstimate', e.target.value)}
-                                        placeholder="e.g., 8-12 weeks..."
-                                    />
-                                </section>
-                                <section className="space-y-4">
-                                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                                        What's NOT Included
-                                        {aiFilledFields.has('exclusions') && (
-                                            <span className="text-[8px] font-bold text-teal-500 bg-teal-50 px-1.5 py-0.5 rounded">AI</span>
-                                        )}
-                                    </h3>
-                                    <textarea
-                                        className={`w-full min-h-[100px] text-sm leading-relaxed text-slate-600 bg-transparent outline-none border-none p-0 focus:ring-0 placeholder:text-slate-200 resize-none ${aiFilledFields.has('exclusions') ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}
-                                        value={proposal.exclusions}
-                                        onChange={e => handleFieldChange('exclusions', e.target.value)}
-                                        placeholder="Clearly list items out of scope to avoid future disputes..."
-                                    />
-                                </section>
+                                {richTextSections.slice(4, 6).map((section) => (
+                                    <section key={section.id} className="space-y-4">
+                                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                            {section.icon}
+                                            {section.title}
+                                            {aiFilledFields.has(section.id) && (
+                                                <span className="text-[8px] font-bold text-teal-500 bg-teal-50 px-1.5 py-0.5 rounded">AI</span>
+                                            )}
+                                        </h3>
+                                        <div className={`${aiFilledFields.has(section.id) ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}>
+                                            <ReactQuill
+                                                theme="snow"
+                                                value={(proposal[section.id] as string) || ''}
+                                                onChange={(content) => handleFieldChange(section.id, content)}
+                                                modules={quillModules}
+                                                formats={quillFormats}
+                                                placeholder={section.placeholder}
+                                                className={`proposal-editor compact ${section.minHeightClass}`}
+                                            />
+                                        </div>
+                                    </section>
+                                ))}
                             </div>
 
                             <section className="space-y-4 pt-8 border-t border-slate-100">
@@ -323,12 +436,17 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                                         <span className="text-[10px] font-bold text-teal-500 bg-teal-50 px-2 py-0.5 rounded animate-pulse">AI SUGGESTED</span>
                                     )}
                                 </h3>
-                                <textarea
-                                    className={`w-full min-h-[100px] text-lg leading-relaxed text-slate-700 bg-transparent outline-none border-none p-0 focus:ring-0 placeholder:text-slate-200 resize-none transition-all ${aiFilledFields.has('nextSteps') ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}
-                                    value={proposal.nextSteps || ''}
-                                    onChange={e => handleFieldChange('nextSteps', e.target.value)}
-                                    placeholder="How do we proceed after reviewing this document?"
-                                />
+                                <div className={`${aiFilledFields.has('nextSteps') ? 'bg-teal-50/50 p-4 rounded -mx-4' : ''}`}>
+                                    <ReactQuill
+                                        theme="snow"
+                                        value={proposal.nextSteps || ''}
+                                        onChange={(content) => handleFieldChange('nextSteps', content)}
+                                        modules={quillModules}
+                                        formats={quillFormats}
+                                        placeholder="How do we proceed after reviewing this document?"
+                                        className="proposal-editor compact min-h-[120px]"
+                                    />
+                                </div>
                             </section>
                         </div>
                     </div>
@@ -384,7 +502,7 @@ const ProposalEditor: React.FC<ProposalEditorProps> = ({ initialProposal, onSave
                         <div className="flex flex-col sm:flex-row justify-center mb-8 no-print gap-4">
                             <button onClick={() => window.print()} className="flex items-center justify-center gap-2 px-8 py-4 bg-teal-500 text-white rounded-xl font-black text-sm uppercase tracking-widest hover:bg-slate-900 shadow-xl shadow-teal-500/20 transition-all active:scale-95">
                                 <Download size={20} />
-                                Download PDF
+                                Export PDF
                             </button>
                             <button
                                 className="flex items-center justify-center gap-2 px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-xl font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
