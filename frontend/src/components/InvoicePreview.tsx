@@ -187,11 +187,15 @@ const InvoicePreview: React.FC<InvoicePreviewProps> = ({ invoice }) => {
               </a>
             </section>
           </div>
-          <div className="text-right flex flex-col justify-end items-end">
+          <div className="text-right flex flex-col justify-end items-end print:break-inside-avoid">
             <div className="w-full">
               <p className="text-[9px] font-bold text-slate-400 uppercase mb-4 tracking-widest">Authorized Signatory</p>
-              <div className="mb-2 flex justify-end">
-                <img src="/signature.png" alt="Signature" className="h-12 object-contain" />
+              <div className="mb-2 flex justify-end min-h-[3rem] items-center">
+                <img
+                  src="/signature.png"
+                  alt="Signature"
+                  className="h-12 w-auto max-h-12 object-contain object-right signature-img"
+                />
               </div>
               <div className="w-48 border-b-2 border-slate-900 ml-auto mb-2"></div>
               <p className="font-bold text-slate-400 uppercase tracking-widest">{COMPANY_DEFAULTS.designation}</p>

@@ -159,15 +159,18 @@ body {
     padding: 0 !important;
   }
 
-  /* Images */
+  /* Images: cap width for print; do not force height — !important breaks Tailwind
+     heights (e.g. signature h-12) and can zero-out flex children in Chrome print/PDF. */
   img {
     max-width: 100% !important;
-    height: auto !important;
   }
 
   .signature-img {
-    max-width: 120px !important;
-    max-height: 40px !important;
+    max-width: 140px !important;
+    max-height: 48px !important;
+    min-height: 24px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Print color accuracy */
